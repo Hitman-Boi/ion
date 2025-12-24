@@ -11,7 +11,7 @@ export const CourseService = {
         // The '::uuid' cast is important for PostgreSQL strict typing.
         return await prisma.$queryRaw<CourseBlock[]>`
       SELECT * FROM "course_blocks"
-      WHERE "course_id" = ${courseId}::uuid
+      WHERE "course_id" = ${courseId}
       ORDER BY "path" ASC;
     `;
     },
@@ -43,7 +43,7 @@ export const CourseService = {
                 await tx.$executeRaw`
           UPDATE "course_blocks"
           SET "path" = ${newPath}::ltree || subpath("path", nlevel(${oldPath}::ltree))
-          WHERE "path" <@ ${oldPath}::ltree AND "id" != ${blockId}::uuid
+          WHERE "path" <@ ${oldPath}::ltree AND "id" != ${blockId}
         `;
             }
 

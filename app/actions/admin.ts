@@ -38,7 +38,8 @@ export async function updateCourseEnrollmentRole(courseId: string, userId: strin
         data: { role },
     })
 
-    revalidatePath("/admin")
+    revalidatePath(`/admin`)
+    revalidatePath(`/admin/courses/${courseId}`)
 }
 
 export async function enrollUserInCourse(courseId: string, userId: string, role: CourseRole = "STUDENT") {
@@ -58,7 +59,8 @@ export async function enrollUserInCourse(courseId: string, userId: string, role:
             role
         }
     })
-    revalidatePath("/admin")
+    revalidatePath(`/admin`)
+    revalidatePath(`/admin/courses/${courseId}`)
 }
 
 export async function createCourse(title: string) {
@@ -122,4 +124,70 @@ export async function getNonAdminUsers() {
             image: true
         }
     })
+}
+
+export async function toggleCourseVisibility(courseId: string, isPublic: boolean) {
+    await checkAdmin()
+    await prisma.course.update({
+        where: { id: courseId },
+        data: { isPublic }
+    })
+    revalidatePath(`/admin/courses/${courseId}`)
+}
+
+export async function getUnenrolledUsers(courseId: string) {
+    await checkAdmin()
+
+    // Get all users who are NOT enrolled in this course
+    return prisma.user.findMany({
+        where: {
+            enrollments: {
+                none: {
+                    courseId: courseId
+                }
+            }
+        },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true
+        },
+        take: 50 // Limit to 50 for performance
+    })
+}
+
+export async function removeUserFromCourse(courseId: string, userId: string) {
+    await checkAdmin()
+
+    await prisma.enrollment.delete({
+        where: {
+            userId_courseId: {
+                userId,
+                courseId,
+            },
+        },
+    })
+
+    revalidatePath(`/admin/courses/${courseId}`)
+}
+
+export async function deleteCourse(courseId: string) {
+    await checkAdmin()
+    await prisma.course.update({
+        where: { id: courseId },
+        data: { deletedAt: new Date() }
+    })
+    revalidatePath("/admin")
+    revalidatePath(`/admin/courses/${courseId}`)
+}
+
+export async function restoreCourse(courseId: string) {
+    await checkAdmin()
+    await prisma.course.update({
+        where: { id: courseId },
+        data: { deletedAt: null }
+    })
+    revalidatePath("/admin")
+    revalidatePath(`/admin/courses/${courseId}`)
 }

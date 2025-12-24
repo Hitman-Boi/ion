@@ -10,8 +10,10 @@ import { CreateCourseButton } from "./create-course-button"
 import { AddAdminButton } from "./add-admin-button"
 import { updateUserGlobalRole } from "@/app/actions/admin"
 import { X } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 import { Header } from "@/components/header"
+import Link from "next/link"
 
 export default async function AdminPage() {
     const session = await auth()
@@ -28,10 +30,8 @@ export default async function AdminPage() {
     const courses = await prisma.course.findMany({
         include: {
             enrollments: {
-                include: {
-                    user: true,
-                },
-            },
+                select: { role: true }
+            }
         },
         orderBy: { createdAt: "desc" },
     })
@@ -48,37 +48,41 @@ export default async function AdminPage() {
                         </div>
                         <ScrollArea className="flex-1">
                             <div className="space-y-4">
-                                {courses.map((course) => (
-                                    <div key={course.id} className="rounded-lg border p-4 shadow-sm">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h3 className="font-semibold">{course.title}</h3>
-                                            <span className="text-xs text-muted-foreground">
-                                                {course.enrollments.length} enrolled
-                                            </span>
-                                        </div>
-                                        <Separator className="my-2" />
-                                        <div className="space-y-2">
-                                            <h4 className="text-sm font-medium">Enrollments</h4>
-                                            {course.enrollments.length === 0 ? (
-                                                <p className="text-xs text-muted-foreground">No enrollments</p>
-                                            ) : (
-                                                course.enrollments.map((enrollment) => (
-                                                    <div key={enrollment.id} className="flex items-center justify-between text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <span>{enrollment.user.email}</span>
-                                                            <span className="text-xs text-muted-foreground">({enrollment.user.name})</span>
-                                                        </div>
-                                                        <EnrollmentRoleForm
-                                                            courseId={course.id}
-                                                            userId={enrollment.userId}
-                                                            currentRole={enrollment.role}
-                                                        />
+                                {courses.map((course) => {
+                                    const studentCount = course.enrollments.filter(e => e.role === "STUDENT").length
+                                    const instructorCount = course.enrollments.filter(e => e.role === "INSTRUCTOR").length
+                                    const moderatorCount = course.enrollments.filter(e => e.role === "MODERATOR").length
+
+                                    return (
+                                        <Link
+                                            key={course.id}
+                                            href={`/admin/courses/${course.id}`}
+                                            className="block"
+                                        >
+                                            <div className="rounded-lg border p-4 shadow-sm hover:bg-accent/50 transition-colors">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="font-semibold">{course.title}</h3>
+                                                        {course.deletedAt ? (
+                                                            <Badge variant="destructive" className="text-xs px-2 py-0">
+                                                                Deleted
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant={course.isPublic ? "default" : "secondary"} className="text-xs px-2 py-0">
+                                                                {course.isPublic ? "Public" : "Private"}
+                                                            </Badge>
+                                                        )}
                                                     </div>
-                                                ))
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
+                                                    <div className="flex gap-3 text-xs text-muted-foreground">
+                                                        {studentCount > 0 && <span>{studentCount} Students</span>}
+                                                        {instructorCount > 0 && <span>{instructorCount} Instructors</span>}
+                                                        {moderatorCount > 0 && <span>{moderatorCount} Moderators</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    )
+                                })}
                             </div>
                         </ScrollArea>
                     </div>

@@ -81,7 +81,9 @@ model Course {
   title         String
   description   String?
   instructorId  String  @map("instructor_id")
+  isPublic      Boolean @default(false) @map("is_public")
   gradingPolicy Json?   @map("grading_policy") // { "cutoffs": ..., "weights": ... }
+  deletedAt     DateTime? @map("deleted_at")
 
   instructor User @relation("InstructorCourses", fields: [instructorId], references: [id])
 
