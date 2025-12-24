@@ -1,9 +1,15 @@
 import { NextAuthOptions } from "next-auth";
+import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
     providers: [
+        AzureADProvider({
+            clientId: process.env.NEXTAUTH_AZURE_AD_CLIENT_ID!,
+            clientSecret: process.env.NEXTAUTH_AZURE_AD_CLIENT_SECRET!,
+            tenantId: process.env.NEXTAUTH_AZURE_AD_TENANT_ID,
+        }),
         CredentialsProvider({
             name: "Credentials",
             credentials: {
@@ -29,6 +35,6 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt"
     },
     pages: {
-        signIn: "/auth/signin",
+        signIn: "/login",
     }
 };

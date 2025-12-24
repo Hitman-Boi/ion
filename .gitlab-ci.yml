@@ -4,7 +4,6 @@ stages:
 
 variables:
   CI_ENV_FILE: ".env.production"
-  TEST_ENV_FILE: ".env.test"
 
 build-test:
   stage: build-test

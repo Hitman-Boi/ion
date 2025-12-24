@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './e2e',
   outputDir: './test-results/',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3002',
     trace: 'on-first-retry',
     testIdAttribute: 'data-test',
   },
@@ -18,10 +18,15 @@ export default defineConfig({
       use: { ...devices['Desktop Firefox'] },
     },
     {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
     },
   ],
   reporter: 'html',
   workers: process.env.CI ? 1 : undefined,
+  webServer: {
+    command: 'PORT=3002 npm run dev',
+    url: 'http://localhost:3002',
+    reuseExistingServer: !process.env.CI,
+  },
 });

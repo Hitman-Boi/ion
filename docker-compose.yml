@@ -28,6 +28,8 @@ services:
       - '3000:3000'
     env_file:
       - .env.production
+    volumes:
+      - ./antigravity_data/uploads:/app/uploads
     environment:
       DB_HOST: db
       DB_PORT: 5432

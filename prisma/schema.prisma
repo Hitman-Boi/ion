@@ -27,6 +27,15 @@ model User {
   role      Role     @default(STUDENT)
   courses   Course[]
   enrollments Enrollment[]
+  progress    UserProgress[]
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  user      User     @relation(fields: [userId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
 }
 
 model Course {
@@ -38,23 +47,55 @@ model Course {
   enrollments Enrollment[]
 }
 
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum UnitType {
+  VIDEO
+  PDF
+  LINK
+  SCORM
+}
+
+enum ProgressStatus {
+  LOCKED
+  IN_PROGRESS
+  COMPLETED
+}
+
 model Module {
   id        Int      @id @default(autoincrement())
   title     String
   courseId  Int
   course    Course   @relation(fields: [courseId], references: [id])
+  units     CourseUnit[]
+  order     Int      @default(0)
 }
 
-model Enrollment {
-  id        Int      @id @default(autoincrement())
+model CourseUnit {
+  id                 Int      @id @default(autoincrement())
+  title              String
+  type               UnitType
+  contentPath        String?  // Path to file on disk or external URL
+  moduleId           Int
+  module             Module   @relation(fields: [moduleId], references: [id])
+  order              Int      @default(0)
+  completionCriteria Json?    // e.g., { "minTime": 300, "pages": 10 }
+  progress           UserProgress[]
+}
+
+model UserProgress {
+  id        Int            @id @default(autoincrement())
   userId    Int
-  courseId  Int
-  user      User     @relation(fields: [userId], references: [id])
-  course    Course   @relation(fields: [courseId], references: [id])
-}
+  unitId    Int
+  user      User           @relation(fields: [userId], references: [id])
+  unit      CourseUnit     @relation(fields: [unitId], references: [id])
+  status    ProgressStatus @default(LOCKED)
+  data      Json?          // e.g., { "lastPosition": 120, "completedPages": [1,2] }
+  updatedAt DateTime       @updatedAt
 
-enum Role {
-  STUDENT
-  INSTRUCTOR
-  ADMIN
+  @@unique([userId, unitId])
 }
