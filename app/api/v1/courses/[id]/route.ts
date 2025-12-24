@@ -4,10 +4,7 @@ import { withAuth } from '@/lib/auth-utils'
 import { z } from 'zod'
 
 const CourseUpdateSchema = z.object({
-  title: z.string().min(3).optional(),
-  description: z.string().min(10).optional(),
-  moduleId: z.number().optional(),
-  organizationId: z.number().optional()
+  title: z.string().min(3).optional()
 })
 
 import { NextRequest } from 'next/server'
@@ -39,7 +36,7 @@ export const GET = withAuth(async (request: NextRequest, { params }: { params: {
 export const PUT = withAuth(async (request: NextRequest, { params }: { params: { id: string } }) => {
   try {
     const body = await request.json()
-    const { title, description, moduleId, organizationId } = CourseUpdateSchema.parse(body)
+    const { title } = CourseUpdateSchema.parse(body)
 
     const course = await prisma.course.findUnique({
       where: { id: parseInt(params.id) }
@@ -55,7 +52,7 @@ export const PUT = withAuth(async (request: NextRequest, { params }: { params: {
 
     const updatedCourse = await prisma.course.update({
       where: { id: parseInt(params.id) },
-      data: { title, description, moduleId, organizationId }
+      data: { title }
     })
     return NextResponse.json(updatedCourse)
   } catch (error) {

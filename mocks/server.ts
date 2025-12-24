@@ -1,9 +1,4 @@
-// Mock MSW server for testing
-// This file is needed for jest.setup.ts
+import { setupServer } from 'msw/node'
+import { handlers } from './handlers'
 
-// Simple no-op mock server
-export const server = {
-    listen: () => { },
-    resetHandlers: () => { },
-    close: () => { }
-};
+export const server = setupServer(...handlers)

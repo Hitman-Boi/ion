@@ -5,14 +5,13 @@ import { authOptions } from '@/lib/auth'
 
 const SignupSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(2)
+  password: z.string().min(8)
 })
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, name } = SignupSchema.parse(body)
+    const { email, password } = SignupSchema.parse(body)
 
     // Implementation will be added in code mode
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -27,10 +26,10 @@ export async function POST(request: Request) {
 
     // Implementation will be added in code mode
     const newUser = await prisma.user.create({
-      data: { email, password, name, role: 'USER' }
+      data: { email, password, role: 'STUDENT' }
     });
 
-    return NextResponse.json({ success: true, user: { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role } })
+    return NextResponse.json({ success: true, user: { id: newUser.id, email: newUser.email, role: newUser.role } })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({

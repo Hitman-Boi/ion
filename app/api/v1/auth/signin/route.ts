@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     // For now, we just return success if user exists.
     // const signInResult = await signIn('credentials', { email, password }); // This is client-side only
 
-    return NextResponse.json({ success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } })
+    return NextResponse.json({ success: true, user: { id: user.id, email: user.email, role: user.role } })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({

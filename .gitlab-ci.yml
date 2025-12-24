@@ -1,23 +1,27 @@
 stages:
-  - build
-  - deploy
+  - build-test
+  - docker-build
 
 variables:
   CI_ENV_FILE: ".env.production"
   TEST_ENV_FILE: ".env.test"
 
-build:
-  stage: build
+build-test:
+  stage: build-test
+  image: mcr.microsoft.com/playwright:v1.57.0-jammy
+  script:
+    - npm ci
+    - npx prisma generate
+    - npm run build
+    - npm run test
+    - npm run test:e2e
+
+docker-build:
+  stage: docker-build
+  needs: ["build-test"]
   script:
     - echo "Using environment file: $CI_ENV_FILE"
     - docker build -t my-app-image -f Dockerfile .
   artifacts:
     paths:
       - my-app-image
-
-deploy:
-  stage: deploy
-  script:
-    - docker-compose -f docker-compose.yml up -d
-  only:
-    - main

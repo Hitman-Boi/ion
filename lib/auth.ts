@@ -21,7 +21,7 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
                 // TODO: Verify password (add bcrypt comparison)
-                return { id: user.id.toString(), email: user.email, name: user.name, role: user.role };
+                return { id: user.id.toString(), email: user.email, role: user.role };
             }
         })
     ],

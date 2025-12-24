@@ -10,17 +10,11 @@ const CourseGetSchema = z.object({
 })
 
 const CourseCreateSchema = z.object({
-  title: z.string().min(3),
-  description: z.string().min(10),
-  moduleId: z.number(),
-  organizationId: z.number()
+  title: z.string().min(3)
 })
 
 const CourseUpdateSchema = z.object({
-  title: z.string().min(3).optional(),
-  description: z.string().min(10).optional(),
-  moduleId: z.number().optional(),
-  organizationId: z.number().optional()
+  title: z.string().min(3).optional()
 })
 
 import { NextRequest } from 'next/server'
@@ -28,22 +22,11 @@ import { NextRequest } from 'next/server'
 export const POST = withAuth(async (request: NextRequest) => {
   try {
     const body = await request.json()
-    const { title, description, moduleId, organizationId } = CourseCreateSchema.parse(body)
+    const { title } = CourseCreateSchema.parse(body)
 
-    const existingModule = await prisma.module.findUnique({
-      where: { id: moduleId }
-    })
-
-    if (!existingModule) {
-      return NextResponse.json({
-        title: 'Module not found',
-        status: 404,
-        detail: 'The specified module does not exist.'
-      }, { status: 404 })
-    }
-
+    // TODO: Get actual instructorId from session
     const course = await prisma.course.create({
-      data: { title, description, moduleId, organizationId }
+      data: { title, instructorId: 1 }
     })
 
     return NextResponse.json(course, { status: 201 })
@@ -65,8 +48,7 @@ export const GET = withAuth(async (request: NextRequest) => {
       take: pageSize || 10,
       where: {
         OR: [
-          { title: { contains: search || '' } },
-          { description: { contains: search || '' } }
+          { title: { contains: search || '' } }
         ]
       }
     })

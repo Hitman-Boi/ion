@@ -5,9 +5,8 @@ import { withAuth } from '@/lib/auth-utils'
 
 const UserCreateSchema = z.object({
   email: z.string().email(),
-  name: z.string().min(2),
-  role: z.enum(['ADMIN', 'USER', 'GUEST']),
-  organizationId: z.number()
+  password: z.string().min(8),
+  role: z.enum(['ADMIN', 'INSTRUCTOR', 'STUDENT'])
 })
 
 const UserGetSchema = z.object({
@@ -21,7 +20,7 @@ import { NextRequest } from 'next/server'
 export const POST = withAuth(async (request: NextRequest) => {
   try {
     const body = await request.json()
-    const { email, name, role, organizationId } = UserCreateSchema.parse(body)
+    const { email, password, role } = UserCreateSchema.parse(body)
 
     const existingUser = await prisma.user.findUnique({
       where: { email }
@@ -36,7 +35,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     }
 
     const user = await prisma.user.create({
-      data: { email, name, role, organizationId }
+      data: { email, password, role }
     })
 
     return NextResponse.json(user, { status: 201 })
@@ -59,8 +58,7 @@ export const GET = withAuth(async (request: NextRequest) => {
       take: pageSize || 10,
       where: {
         OR: [
-          { email: { contains: search || '' } },
-          { name: { contains: search || '' } }
+          { email: { contains: search || '' } }
         ]
       }
     })
