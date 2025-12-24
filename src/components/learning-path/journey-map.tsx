@@ -19,9 +19,9 @@ export function JourneyMap({ path, completedTopicIds }: JourneyMapProps) {
                 {path.items.map((item: any, index: number) => {
                     let allTopics: string[] = []
                     if (item.course) {
-                        allTopics = item.course.chapters.flatMap((ch: any) => ch.topics.map((t: any) => t.id))
-                    } else if (item.chapter) {
-                        allTopics = item.chapter.topics.map((t: any) => t.id)
+                        allTopics = item.course.modules.flatMap((m: any) => m.topics.map((t: any) => t.id))
+                    } else if (item.module) {
+                        allTopics = item.module.topics.map((t: any) => t.id)
                     }
 
                     // If no topics (empty course), treat as incomplete or handle gracefully
@@ -41,8 +41,8 @@ export function JourneyMap({ path, completedTopicIds }: JourneyMapProps) {
 
                     const linkUrl = item.course
                         ? `/courses/${item.course.id}`
-                        : item.chapter?.courseId
-                            ? `/courses/${item.chapter.courseId}`
+                        : item.module?.courseId
+                            ? `/courses/${item.module.courseId}`
                             : "#";
 
                     const NodeContent = (
@@ -63,7 +63,7 @@ export function JourneyMap({ path, completedTopicIds }: JourneyMapProps) {
                                     "text-sm font-medium leading-tight",
                                     status === "locked" && "text-muted-foreground"
                                 )}>
-                                    {item.course?.title || item.chapter?.title}
+                                    {item.course?.title || item.module?.title}
                                 </p>
                                 <p className="text-[10px] text-muted-foreground mt-1">
                                     Step {index + 1}

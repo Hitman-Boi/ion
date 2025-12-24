@@ -1,7 +1,0 @@
-feat: implement authentication and learning content ecosystem
-
-- Integrate Azure AD OAuth for user authentication
-- Create protected routes with middleware
-- Implement Video, PDF, and SCORM content delivery
-- Set up secure streaming for content protection
-- Build core UI components with shadcn/ui

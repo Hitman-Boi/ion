@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Chapter, Course, Topic, UserProgress } from "@prisma/client";
+import { Module, Course, Topic, UserProgress } from "@prisma/client";
 import { CheckCircle, ChevronLeft, ChevronRight, Lock, PlayCircle, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -17,7 +17,7 @@ import {
 
 interface CourseSidebarProps {
     course: Course & {
-        chapters: (Chapter & {
+        modules: (Module & {
             topics: (Topic & {
                 progress: UserProgress[];
             })[];
@@ -95,15 +95,15 @@ export const CourseSidebar = ({
             {/* Navigation Links */}
             <ScrollArea className="flex-1">
                 <div className="flex flex-col gap-y-2 p-3">
-                    {course.chapters.map((chapter) => (
-                        <div key={chapter.id} className="mb-4">
+                    {course.modules.map((module) => (
+                        <div key={module.id} className="mb-4">
                             {!isCollapsed && (
                                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
-                                    {chapter.title}
+                                    {module.title}
                                 </h3>
                             )}
                             <div className="space-y-1">
-                                {chapter.topics.map((topic) => {
+                                {module.topics.map((topic) => {
                                     const isActive = pathname?.includes(topic.id);
                                     const isCompleted = topic.progress?.[0]?.isTopicComplete;
                                     const isLocked = false; // Add specific lock logic if needed, e.g. previous lesson not complete

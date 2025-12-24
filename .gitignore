@@ -29,6 +29,8 @@ yarn-error.log*
 .env.production
 .env.local
 .env.*.local
+# Exception: .env.localdev is committed for team sharing
+!.env.localdev
 
 # Vercel
 .vercel

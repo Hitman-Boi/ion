@@ -8,7 +8,7 @@ export type CourseWithDetails = Course & {
     skills: Skill[];
     enrollments?: { length: number }[]; // Minimal check for enrollment count if needed
     _count?: {
-        chapters: number;
+        modules: number;
         enrollments: number;
     };
 };
@@ -54,7 +54,7 @@ export async function getCourses({
                 skills: true,
                 _count: {
                     select: {
-                        chapters: true,
+                        modules: true,
                         enrollments: true,
                     },
                 },
@@ -81,7 +81,7 @@ export async function getCourseById(courseId: string, userId?: string) {
             include: {
                 instructor: true,
                 skills: true,
-                chapters: {
+                modules: {
                     orderBy: {
                         sortOrder: "asc",
                     },

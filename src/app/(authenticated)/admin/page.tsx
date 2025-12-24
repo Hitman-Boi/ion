@@ -29,7 +29,7 @@ export default async function AdminPage() {
                 enrollments: {
                     select: { role: true }
                 },
-                chapters: true
+                modules: true
             },
             orderBy: { createdAt: "desc" },
         }),
@@ -42,23 +42,23 @@ export default async function AdminPage() {
         <div className="h-screen w-full bg-background flex flex-col p-6">
             <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
-            <div className="flex-1 grid grid-cols-[1fr_300px] gap-6 min-h-0">
+            <div className="flex-1 flex flex-col md:grid md:grid-cols-[1fr_300px] gap-6 min-h-0">
                 {/* Left Pane: Course List */}
-                <div className="h-full border rounded-lg bg-card/50 overflow-hidden">
+                <div className="order-2 md:order-none h-full border rounded-lg bg-card/50 overflow-hidden">
                     <CoursesList courses={courses} />
                 </div>
 
                 {/* Right Sidebar: Actions */}
-                <div className="flex flex-col gap-4">
-                    <CreateCourseButton />
-                    <ManageAdminsSheet initialAdmins={adminUsers} />
-                    <Button asChild variant="outline" className="justify-start">
+                <div className="order-1 md:order-none flex flex-col gap-4">
+                    <CreateCourseButton className="justify-center md:justify-start" />
+                    <ManageAdminsSheet initialAdmins={adminUsers} className="justify-center md:justify-start" />
+                    <Button asChild variant="outline" className="justify-center md:justify-start">
                         <Link href="/admin/roles">
                             <Waypoints className="mr-2 h-4 w-4" />
                             Manage Learning Paths & Roles
                         </Link>
                     </Button>
-                    <ManageSkillsSheet initialGapData={skillGapData} allSkills={allSkills} />
+                    <ManageSkillsSheet initialGapData={skillGapData} allSkills={allSkills} className="justify-center md:justify-start" />
                 </div>
             </div>
         </div>

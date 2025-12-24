@@ -1,7 +1,0 @@
-feat: establish CI/CD pipeline and testing infrastructure
-
-- Configure GitHub/GitLab CI with build and test workflows
-- Optimize Docker builds with caching and standalone output
-- Set up Vitest with MSW for API mocking
-- Add Playwright configuration for E2E tests
-- Configure jest-dom for component testing

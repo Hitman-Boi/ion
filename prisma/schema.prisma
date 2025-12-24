@@ -29,6 +29,11 @@ model User {
   // Instructor relations
   authoredCourses Course[] @relation("InstructorCourses")
 
+  // Content Quality relations
+  courseReviews CourseReview[]
+  contentFlags  ContentFlag[]
+  subscribedPaths UserLearningPath[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -87,15 +92,29 @@ model Course {
   gradingPolicy Json?     @map("grading_policy") // { "cutoffs": ..., "weights": ... }
   deletedAt     DateTime? @map("deleted_at")
 
+  // Content Quality Metrics (Updated via Triggers/Cron)
+  averageRating   Float    @default(0.0) @map("average_rating")
+  reviewCount     Int      @default(0) @map("review_count")
+  completionRate  Float    @default(0.0) @map("completion_rate")
+  enrollmentCount Int      @default(0) @map("enrollment_count")
+
+  // Governance & Quality
+  healthScore     Int      @default(100) @map("health_score")
+  bugReportCount  Int      @default(0) @map("bug_report_count")
+  contentVelocity VelocityType @default(NORMAL) @map("content_velocity")
+  lastReviewedAt  DateTime @default(now()) @map("last_reviewed_at")
+
   instructor User @relation("InstructorCourses", fields: [instructorId], references: [id])
 
-  chapters    Chapter[]
-  enrollments Enrollment[]
-  skills      Skill[]
-
-  createdAt        DateTime           @default(now()) @map("created_at")
-  updatedAt        DateTime           @updatedAt @map("updated_at")
+  modules          Module[]
+  enrollments      Enrollment[]
+  skills           Skill[]
+  reviews          CourseReview[]
+  bugReports       ContentFlag[]
   LearningPathItem LearningPathItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("courses")
 }
@@ -199,6 +218,7 @@ model LearningPath {
   roles JobRole[]
 
   items LearningPathItem[]
+  subscribers UserLearningPath[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -208,10 +228,30 @@ model LearningPath {
   @@map("learning_paths")
 }
 
+model UserLearningPath {
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  learningPathId String       @map("learning_path_id")
+  
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  learningPath LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@unique([userId, learningPathId])
+  @@map("user_learning_paths")
+}
+
 enum PathLevel {
   BEGINNER
   INTERMEDIATE
   ADVANCED
+}
+
+enum VelocityType {
+  HIGH   // 180 days TTL (AI, React, etc.)
+  NORMAL // 365 days TTL
+  LOW    // 730 days TTL (Soft Skills)
 }
 
 model LearningPathItem {
@@ -219,12 +259,12 @@ model LearningPathItem {
   learningPathId String       @map("learning_path_id")
   learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
 
-  // Polymorphic-ish: An item can be EITHER a Course OR a Chapter
+  // Polymorphic-ish: An item can be EITHER a Course OR a Module
   courseId String? @map("course_id")
   course   Course? @relation(fields: [courseId], references: [id])
 
-  chapterId String?  @map("chapter_id")
-  chapter   Chapter? @relation(fields: [chapterId], references: [id])
+  moduleId String?  @map("module_id")
+  module   Module? @relation(fields: [moduleId], references: [id])
 
   orderIndex Int @map("order_index")
 
@@ -259,7 +299,7 @@ model UserSkill {
 
 // Micro-Learning & Atomic Tracking Models
 
-model Chapter {
+model Module {
   id          String  @id @default(uuid())
   courseId    String  @map("course_id")
   title       String
@@ -273,17 +313,17 @@ model Chapter {
   updatedAt        DateTime           @updatedAt @map("updated_at")
   LearningPathItem LearningPathItem[]
 
-  @@map("chapters")
+  @@map("modules")
 }
 
 model Topic {
   id          String  @id @default(uuid())
-  chapterId   String  @map("chapter_id")
+  moduleId    String  @map("module_id")
   title       String
   description String?
   sortOrder   Int     @map("sort_order")
 
-  chapter   Chapter         @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  module    Module          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   resources TopicResource[]
   progress  UserProgress[]
 
@@ -344,4 +384,41 @@ model UserProgress {
 
   @@unique([userId, topicId])
   @@map("user_progress")
+}
+
+// Content Quality Models
+
+model CourseReview {
+  id        String   @id @default(uuid())
+  courseId  String   @map("course_id")
+  userId    String   @map("user_id")
+  rating    Int      // 1-5 Stars
+  comment   String?
+  isPublic  Boolean  @default(false) @map("is_public")
+  
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, courseId])
+  @@map("course_reviews")
+}
+
+model ContentFlag {
+  id        String   @id @default(uuid())
+  courseId  String   @map("course_id")
+  userId    String   @map("user_id")
+  reason    String   // "Video Broken", "Audio Bad", "Content Outdated"
+  status    String   @default("OPEN") // "OPEN", "RESOLVED", "DISMISSED"
+  details   String?
+  
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime  @default(now()) @map("created_at")
+  resolvedAt DateTime? @map("resolved_at")
+
+  @@map("content_flags")
 }

@@ -153,11 +153,11 @@ async function checkTopicCompletion(userId: string, topicId: string, progress: a
             // Find courseId first
             const topic = await prisma.topic.findUnique({
                 where: { id: topicId },
-                include: { chapter: { select: { courseId: true } } }
+                include: { module: { select: { courseId: true } } }
             });
 
-            if (topic?.chapter?.courseId) {
-                await checkCourseCompletion(userId, topic.chapter.courseId);
+            if (topic?.module?.courseId) {
+                await checkCourseCompletion(userId, topic.module.courseId);
             }
         }
     }
@@ -169,7 +169,7 @@ async function checkCourseCompletion(userId: string, courseId: string) {
         where: { id: courseId },
         include: {
             skills: true,
-            chapters: {
+            modules: {
                 include: {
                     topics: { select: { id: true } }
                 }
@@ -180,7 +180,7 @@ async function checkCourseCompletion(userId: string, courseId: string) {
     if (!course) return;
 
     // 2. Flatten Topics
-    const allTopics = course.chapters.flatMap(c => c.topics);
+    const allTopics = course.modules.flatMap(c => c.topics);
     if (allTopics.length === 0) return;
 
     // 3. User Progress for these topics

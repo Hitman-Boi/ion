@@ -28,8 +28,8 @@ export default async function LearnLayout({
     let totalTopics = 0;
     let completedTopics = 0;
 
-    course.chapters.forEach(chapter => {
-        chapter.topics.forEach(topic => {
+    course.modules.forEach(module => {
+        module.topics.forEach(topic => {
             totalTopics++;
             if (topic.progress && topic.progress.length > 0 && topic.progress[0].isTopicComplete) {
                 completedTopics++;

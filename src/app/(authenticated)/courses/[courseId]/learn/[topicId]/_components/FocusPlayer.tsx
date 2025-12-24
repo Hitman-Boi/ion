@@ -6,13 +6,16 @@ import { cn } from '@/lib/utils'
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import { ChevronLeft, ChevronRight, FileText, CheckCircle } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { UserProgress } from '@prisma/client'
 import { VideoPlayer } from '@/components/player/video-player'
 import { QuizInterface } from '@/components/player/quiz-interface'
 import { ProgressRing } from '@/components/common/progress-ring'
 import { markPdfComplete } from '@/app/actions/progress.actions'
 import { toast } from 'sonner'
+import { ContentFlagButton } from '@/components/player/content-flag-button'
+import { CourseCompletionModal } from '@/components/course/course-completion-modal'
+import { checkUserCourseCompletion } from '@/app/actions/course-completion.actions'
 
 interface FocusPlayerProps {
     topic: any // Full topic with resources
@@ -38,6 +41,32 @@ export function FocusPlayer({ topic, courseId, nextTopicId, prevTopicId, userPro
     const pdfCompleted = userProgress?.pdfCompleted || false
     const quizPassed = userProgress?.quizPassed || false
 
+    // Course Completion Modal State
+    const [showCompletionModal, setShowCompletionModal] = useState(false)
+    const [courseTitle, setCourseTitle] = useState("")
+
+    // Check for course completion when progress changes
+    useEffect(() => {
+        const checkCompletion = async () => {
+            // Only check if this topic is now complete
+            const isTopicComplete = userProgress?.isTopicComplete
+            if (!isTopicComplete) return
+
+            try {
+                // Call server action directly
+                const result = await checkUserCourseCompletion(courseId)
+                if (result.isComplete && !result.hasReviewed) {
+                    setCourseTitle(result.courseTitle || "this course")
+                    setShowCompletionModal(true)
+                }
+            } catch (error) {
+                console.error("Failed to check course completion:", error)
+            }
+        }
+
+        checkCompletion()
+    }, [userProgress?.isTopicComplete, courseId])
+
     const handleMarkPdfRead = async () => {
         if (!pdfResource) return
         try {
@@ -51,7 +80,7 @@ export function FocusPlayer({ topic, courseId, nextTopicId, prevTopicId, userPro
     }
 
     return (
-        <div className="h-screen w-full flex bg-[#0f1115] text-white overflow-hidden">
+        <div className="h-[calc(100vh-64px)] w-full flex bg-[#0f1115] text-white overflow-hidden">
             {/* Main Content Area: Split 70/30 */}
             <div className="flex-1 flex flex-col md:flex-row h-full">
 
@@ -59,9 +88,14 @@ export function FocusPlayer({ topic, courseId, nextTopicId, prevTopicId, userPro
                 <div className={cn("flex-1 bg-black relative flex flex-col justify-center border-r border-white/10")}>
                     {/* Navigation Overlay (Top Left) */}
                     <div className="absolute top-4 left-4 z-20 flex gap-2">
-                        <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70 text-white rounded-full h-10 w-10" onClick={() => router.push(`/courses/${courseId}${previewQuery ? '' : ''}`)}> {/* Preview mode: Maybe keeping back button behavior? For now leaving as is or maybe disable/hide back to course home in preview? Leaving standard behavior but stripped of query if going back to course home, OR keeping it? Course home doesn't support preview mode probably. */}
+                        <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70 text-white rounded-full h-10 w-10" onClick={() => router.push(`/courses/${courseId}${previewQuery ? '' : ''}`)}>
                             <ChevronLeft className="w-5 h-5" />
                         </Button>
+                    </div>
+
+                    {/* Flag Button (Top Right) */}
+                    <div className="absolute top-4 right-4 z-20">
+                        <ContentFlagButton courseId={courseId} />
                     </div>
 
                     {videoResource ? (
@@ -76,7 +110,7 @@ export function FocusPlayer({ topic, courseId, nextTopicId, prevTopicId, userPro
                     )}
 
                     {/* Navigation Bar (Bottom) */}
-                    <div className="h-16 bg-[#0f1115] border-t border-white/10 flex items-center justify-between px-6">
+                    <div className="h-16 flex-shrink-0 bg-[#0f1115] border-t border-white/10 flex items-center justify-between px-6">
                         <Button
                             variant="ghost"
                             disabled={!prevTopicId}
@@ -200,6 +234,14 @@ export function FocusPlayer({ topic, courseId, nextTopicId, prevTopicId, userPro
                     </div>
                 </div>
             </div>
+
+            {/* Course Completion Modal */}
+            <CourseCompletionModal
+                isOpen={showCompletionModal}
+                onClose={() => setShowCompletionModal(false)}
+                courseId={courseId}
+                courseTitle={courseTitle}
+            />
         </div>
     )
 }

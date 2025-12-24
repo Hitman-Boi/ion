@@ -99,7 +99,7 @@ export async function getRoles() {
                         orderBy: { orderIndex: 'asc' },
                         include: {
                             course: true,
-                            chapter: true
+                            module: true
                         }
                     }
                 }

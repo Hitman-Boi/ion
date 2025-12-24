@@ -48,7 +48,7 @@ export const CourseCard = ({ course }: CourseCardProps) => {
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1">
                             <BookOpen className="h-3 w-3" />
-                            <span>{course._count?.chapters || 0} Chapters</span>
+                            <span>{course._count?.modules || 0} Modules</span>
                         </div>
                         {/* Optional: Add student count if available */}
                         {/* <div className="flex items-center gap-1">

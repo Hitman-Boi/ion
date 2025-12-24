@@ -73,20 +73,7 @@ export default async function LearningPathsPage({
                             </CardContent>
                             <CardFooter>
                                 <Button asChild className="w-full group">
-                                    {/* Note: In a real app we might have a specific path details page /paths/[id]
-                                        For now, since we don't have a specific public route for a path detail 
-                                        defined in the prompt, let's assume it leads to a view or expands.
-                                        However, the user wants "My Career Paths" on the dashboard.
-                                        Let's link to a placeholder or stay here. 
-                                        Wait, the user has /learning-paths check in the task.
-                                        Let's assume there isn't a detail page yet, so maybe just a button "View Details" 
-                                        that (for now) does nothing or goes to the dashboard to "Add"?
-                                        Actually, usually you'd want to "Start" this path.
-                                        I'll link to `#` for now or maybe `/learner-dashboard` if it adds it?
-                                        The user's request was to "explore more career paths".
-                                        Let's make it simple.
-                                     */}
-                                    <Link href={`#`}>
+                                    <Link href={`/learning-paths/${path.id}`}>
                                         View Path <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                     </Link>
                                 </Button>

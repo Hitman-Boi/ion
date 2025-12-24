@@ -18,42 +18,61 @@ This architecture ensures scalability, maintainability, and robustness of the ap
 ### Prerequisites
 
 - **Node.js**: Version 18.17.0 or later.
-- **Docker**: For running the database locally.
+- **Docker**: For running PostgreSQL, Redis, and PostHog locally.
 
-### Setup and Run
+### Quick Start (Recommended)
 
-1. **Install dependencies**:
+One command to start everything:
+
+```bash
+./scripts/localdev.sh
+```
+
+This script automatically:
+- Starts Docker containers (PostgreSQL, Redis, PostHog)
+- Waits for the database to be ready
+- Copies `.env.localdev` → `.env` (if needed)
+- Installs npm dependencies
+- Runs Prisma migrations and seeds the database
+- Starts the Next.js dev server
+
+**Services:**
+| Service | URL |
+|---------|-----|
+| App | http://localhost:3000 |
+| PostHog | http://localhost:8000 |
+| PostgreSQL | `postgresql://postgres:postgres@localhost:5432/learning_hub` |
+
+### Manual Setup (Alternative)
+
+1. **Start Docker containers**:
    ```bash
+   docker compose -f docker-compose.localdev.yml up -d
+   ```
+
+2. **Set up environment**:
+   ```bash
+   cp .env.localdev .env
    npm install
    ```
 
-2. **Set up the database**:
-   Start the PostgreSQL database using Docker Compose:
+3. **Initialize database**:
    ```bash
-   docker-compose up -d db
-   ```
-   
-   Generate the Prisma client:
-   ```bash
-   npx prisma generate
-   ```
-   
-   Push the database schema:
-   ```bash
-   npx prisma db push
+   npx prisma migrate dev
+   npx prisma db seed
    ```
 
-3. **Start the development server**:
+4. **Start development server**:
    ```bash
    npm run dev
    ```
-   The application will be available at `http://localhost:3000`.
 
-4. **Build for production**:
-   ```bash
-   npm run build
-   npm start
-   ```
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
 
 ### Running Tests
 

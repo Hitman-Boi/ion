@@ -1,9 +1,0 @@
-feat: introduce learning paths and multi-dashboard architecture
-
-- Implement Learning Paths with Role-Based Skill Matrices
-- Create dedicated admin interface for paths and roles
-- Migrate to src/ directory structure
-- Enable multiple career goal selection and tracking
-- Separate instructor and learner dashboards
-- Add learning path detail pages with navigation
-- Build Playwright tests for new features

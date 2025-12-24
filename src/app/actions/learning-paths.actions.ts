@@ -44,7 +44,7 @@ export async function updateLearningPath(id: string, data: { title: string; desc
     return path;
 }
 
-export async function addLearningPathItem(pathId: string, data: { courseId?: string; chapterId?: string }) {
+export async function addLearningPathItem(pathId: string, data: { courseId?: string; moduleId?: string }) {
     const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
         throw new Error("Unauthorized");
@@ -59,7 +59,7 @@ export async function addLearningPathItem(pathId: string, data: { courseId?: str
         data: {
             learningPathId: pathId,
             courseId: data.courseId,
-            chapterId: data.chapterId,
+            moduleId: data.moduleId,
             orderIndex: count, // Append to end
         }
     });
@@ -112,7 +112,7 @@ export async function getLearningPaths() {
                 orderBy: { orderIndex: 'asc' },
                 include: {
                     course: true,
-                    chapter: true
+                    module: true
                 }
             },
             roles: true
@@ -142,7 +142,7 @@ export async function getPublicLearningPaths(searchParams?: { term?: string }) {
                 orderBy: { orderIndex: 'asc' },
                 include: {
                     course: true,
-                    chapter: true
+                    module: true
                 }
             },
             roles: true,
@@ -153,3 +153,80 @@ export async function getPublicLearningPaths(searchParams?: { term?: string }) {
         orderBy: { title: 'asc' }
     });
 }
+
+export async function subscribeToLearningPath(pathId: string) {
+    const session = await auth();
+    if (!session?.user) {
+        throw new Error("Unauthorized");
+    }
+
+    // Check if path exists
+    const path = await prisma.learningPath.findUnique({
+        where: { id: pathId }
+    });
+
+    if (!path) {
+        throw new Error("Learning path not found");
+    }
+
+    // Check if already subscribed
+    const existing = await prisma.userLearningPath.findUnique({
+        where: {
+            userId_learningPathId: {
+                userId: session.user.id,
+                learningPathId: pathId
+            }
+        }
+    });
+
+    if (existing) {
+        return existing;
+    }
+
+    const subscription = await prisma.userLearningPath.create({
+        data: {
+            userId: session.user.id,
+            learningPathId: pathId
+        }
+    });
+
+    revalidatePath(`/learning-paths/${pathId}`);
+    revalidatePath('/learner-dashboard');
+    return subscription;
+}
+
+export async function unsubscribeFromLearningPath(pathId: string) {
+    const session = await auth();
+    if (!session?.user) {
+        throw new Error("Unauthorized");
+    }
+
+    await prisma.userLearningPath.deleteMany({
+        where: {
+            userId: session.user.id,
+            learningPathId: pathId
+        }
+    });
+
+    revalidatePath(`/learning-paths/${pathId}`);
+    revalidatePath('/learner-dashboard');
+}
+
+export async function isSubscribedToLearningPath(pathId: string): Promise<boolean> {
+    const session = await auth();
+    if (!session?.user) {
+        return false;
+    }
+
+    const subscription = await prisma.userLearningPath.findUnique({
+        where: {
+            userId_learningPathId: {
+                userId: session.user.id,
+                learningPathId: pathId
+            }
+        }
+    });
+
+    return !!subscription;
+}
+

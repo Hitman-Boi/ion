@@ -27,7 +27,7 @@ export async function getInstructorCourses(userId: string) {
             _count: {
                 select: {
                     enrollments: true,
-                    chapters: true,
+                    modules: true,
                 },
             },
         },
