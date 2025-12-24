@@ -157,9 +157,9 @@ This will set up the app for development and testing.
 Create a `.env` file with:
 
 ```env
-POSTGRES_USER=your_postgres_user
-POSTGRES_PASSWORD=your_postgres_password
-POSTGRES_DB=your_postgres_db
+POSTGRES_USER=your_postgres_user (DB_USERNAME)
+POSTGRES_PASSWORD=your_postgres_password (DB_PASSWORD)
+POSTGRES_DB=learning_hub (DB_NAME)
 ```
 
 ### Monitoring & Troubleshooting

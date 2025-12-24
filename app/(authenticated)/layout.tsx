@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { Header } from "@/components/header"
+import { Header } from "./_components/header"
 import { redirect } from "next/navigation"
 
 export default async function AuthenticatedLayout({

@@ -1,7 +1,7 @@
 "use client"
 
-import { updateUserGlobalRole, updateCourseEnrollmentRole } from "@/app/actions/admin"
-import { Role, CourseRole } from "@prisma/client"
+import { updateCourseEnrollmentRole, updateUserGlobalRole } from "@/app/actions/admin"
+import { CourseRole, Role } from "@prisma/client"
 
 export function UserRoleForm({ userId, currentRole }: { userId: string, currentRole: Role }) {
     return (

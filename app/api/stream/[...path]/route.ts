@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stat, open } from "fs/promises";
 import { createReadStream } from "fs";
-import path from "path";
+import { stat } from "fs/promises";
 import mime from "mime";
+import { NextRequest, NextResponse } from "next/server";
+import path from "path";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), "antigravity_data", "uploads");
 

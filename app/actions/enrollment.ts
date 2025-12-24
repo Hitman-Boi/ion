@@ -39,3 +39,21 @@ export async function completeCourse(courseId: string) {
     revalidatePath("/dashboard");
     revalidatePath("/admin/skills");
 }
+
+export async function enrollUser(courseId: string) {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+        throw new Error("Unauthorized");
+    }
+
+    const enrollment = await prisma.enrollment.create({
+        data: {
+            userId: session.user.id,
+            courseId: courseId,
+        },
+    });
+
+    revalidatePath(`/courses/${courseId}`);
+    return enrollment;
+}

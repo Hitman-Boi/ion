@@ -1,7 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { deleteCourse } from "@/app/actions/admin"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,9 +9,11 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
+    DialogTrigger
 } from "@/components/ui/dialog"
 import { Trash2 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export function DeleteCourseButton({ courseId }: { courseId: string }) {
     const [open, setOpen] = useState(false)

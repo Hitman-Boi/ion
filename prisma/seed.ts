@@ -65,6 +65,46 @@ async function main() {
           userId: testUser.id,
           role: 'STUDENT'
         }
+      },
+      chapters: {
+        create: [
+          {
+            title: 'Introduction',
+            sortOrder: 1,
+            topics: {
+              create: [
+                {
+                  title: 'Welcome to the Course',
+                  sortOrder: 1,
+                  resources: {
+                    create: [
+                      {
+                        title: 'Welcome Video',
+                        type: 'VIDEO',
+                        contentUrl: 'https://example.com/video.mp4',
+                        sortOrder: 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  title: 'Setup Environment',
+                  sortOrder: 2,
+                  resources: {
+                    create: [
+                      {
+                        title: 'Setup Guide',
+                        type: 'PDF',
+                        contentUrl: 'https://example.com/guide.pdf',
+                        sortOrder: 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
       }
     },
   })

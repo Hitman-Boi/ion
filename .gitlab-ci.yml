@@ -16,7 +16,7 @@ build:
     - |
       if [ -f "$CI_ENV_FILE" ]; then
         echo "" >> $CI_ENV_FILE
-        env | grep -E "^(DATABASE_URL|AUTH_SECRET|AUTH_MICROSOFT_ENTRA_ID_ID|AUTH_MICROSOFT_ENTRA_ID_SECRET|AUTH_MICROSOFT_ENTRA_ID_TENANT_ID)" >> $CI_ENV_FILE || true
+        env | grep -E "^(DATABASE_URL|SESSION_ENCRYPTION_SECRET|AZURE_AD_CLIENT_ID|AZURE_AD_CLIENT_SECRET|AZURE_AD_TENANT_ID)" >> $CI_ENV_FILE || true
       fi
     - npm ci
     - npx prisma generate

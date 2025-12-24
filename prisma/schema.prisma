@@ -1,12 +1,10 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [ltree]
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -22,6 +20,7 @@ model User {
   sessions    Session[]
   enrollments Enrollment[]
   submissions Submission[]
+  progress    UserProgress[]
   skills      UserSkill[]
 
   // Instructor relations
@@ -87,7 +86,8 @@ model Course {
 
   instructor User @relation("InstructorCourses", fields: [instructorId], references: [id])
 
-  blocks      CourseBlock[]
+
+  chapters    Chapter[]
   enrollments Enrollment[]
   skills      Skill[]
 
@@ -97,31 +97,7 @@ model Course {
   @@map("courses")
 }
 
-model CourseBlock {
-  id          String   @id @default(uuid())
-  courseId    String   @map("course_id")
-  parentId    String?  @map("parent_id")
-  path        String // Materialized path for ltree (e.g., "root.chapter1.seq2")
-  blockType   String   @map("block_type") // 'chapter', 'video', 'problem', etc.
-  displayName String   @map("display_name")
-  position    Int      @default(0)
-  content     Json     @default("{}") // { "playbackId": "...", "html": "..." }
-  settings    Json     @default("{}") // Visibility, weights, etc.
-  visibleTo   String[] @default(["public"]) @map("visible_to")
 
-  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  parent CourseBlock? @relation("BlockHierarchy", fields: [parentId], references: [id])
-  children CourseBlock[] @relation("BlockHierarchy")
-
-  submissions Submission[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@index([courseId])
-  @@index([path]) // In real DB, this should be a GIST index on ltree
-  @@map("course_blocks")
-}
 
 model Enrollment {
   id        String   @id @default(uuid())
@@ -145,15 +121,15 @@ model Enrollment {
 model Submission {
   id            String   @id @default(uuid())
   userId        String   @map("user_id")
-  blockId       String   @map("block_id")
+  resourceId    String   @map("resource_id")
   answerData    Json     @map("answer_data")
   scoreRaw      Decimal  @map("score_raw") @db.Decimal(5, 2)
   scorePossible Decimal  @map("score_possible") @db.Decimal(5, 2)
   submittedAt   DateTime @default(now()) @map("submitted_at")
   isLate        Boolean  @default(false) @map("is_late")
 
-  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  block CourseBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource TopicResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   @@map("submissions")
 }
@@ -249,4 +225,92 @@ model UserSkill {
 
   @@unique([userId, skillId])
   @@map("user_skills")
+}
+
+// Micro-Learning & Atomic Tracking Models
+
+model Chapter {
+  id          String   @id @default(uuid())
+  courseId    String   @map("course_id")
+  title       String
+  description String?
+  sortOrder   Int      @map("sort_order")
+  
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  topics      Topic[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("chapters")
+}
+
+model Topic {
+  id          String   @id @default(uuid())
+  chapterId   String   @map("chapter_id")
+  title       String
+  description String?
+  sortOrder   Int      @map("sort_order")
+  
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  resources   TopicResource[]
+  progress    UserProgress[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("topics")
+}
+
+enum ResourceType {
+  VIDEO
+  PDF
+  QUIZ
+}
+
+model TopicResource {
+  id          String       @id @default(uuid())
+  topicId     String       @map("topic_id")
+  type        ResourceType
+  title       String       // e.g. "Intro Video", "Handout PDF", "Concept Check"
+  contentUrl  String?      @map("content_url") // For Video/PDF
+  quizData    Json?        @map("quiz_data")   // For Quiz
+  sortOrder   Int          @default(0) @map("sort_order")
+  
+  topic       Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("topic_resources")
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model UserProgress {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  topicId     String   @map("topic_id")
+  
+  // The 'Truth' of the Atoms
+  videoCompleted Boolean @default(false) @map("video_completed")
+  pdfCompleted   Boolean @default(false) @map("pdf_completed")
+  quizPassed     Boolean @default(false) @map("quiz_passed")
+  
+  // The aggregated state
+  isTopicComplete Boolean @default(false) @map("is_topic_complete") // Computed: video && pdf && quiz
+  
+  quizScore      Int?     @map("quiz_score") // The actual grade (0-100)
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@map("user_progress")
 }

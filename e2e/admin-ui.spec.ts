@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Admin UI', () => {
     test.beforeEach(async ({ page }) => {
@@ -24,8 +24,8 @@ test.describe('Admin UI', () => {
         page.on('console', msg => console.log(`BROWSER LOG: ${msg.text()}`));
         await page.goto('/admin', { timeout: 60000 });
 
-        // Click "Add Admin" button
-        await page.getByRole('button', { name: 'Add Admin' }).click();
+        // Click "Manage Admins" button
+        await page.getByRole('button', { name: 'Manage Admins' }).click();
 
         // Check for Sheet Title
         await expect(page.getByRole('heading', { name: 'Add New Admin' })).toBeVisible();
@@ -43,10 +43,10 @@ test.describe('Admin UI', () => {
         await expect(page.getByPlaceholder('Search user...')).toBeVisible();
 
         // Search for seeded user
-        await page.getByPlaceholder('Search user...').fill('teststudent');
+        await page.getByPlaceholder('Search user...').fill('test');
 
         // Verify user is in the list
-        await expect(page.getByText('teststudent@example.com')).toBeVisible();
+        await expect(page.getByText('test@example.com')).toBeVisible();
     });
 
     test('Create Course Sheet should be visible', async ({ page }) => {

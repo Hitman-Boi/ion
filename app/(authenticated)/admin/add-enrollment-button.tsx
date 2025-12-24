@@ -1,32 +1,32 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { enrollUserInCourse, getUnenrolledUsers } from "@/app/actions/admin"
 import { Button } from "@/components/ui/button"
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
 import {
     Command,
     CommandEmpty,
     CommandGroup,
     CommandInput,
     CommandItem,
-    CommandList,
+    CommandList
 } from "@/components/ui/command"
 import {
     Popover,
     PopoverContent,
-    PopoverTrigger,
+    PopoverTrigger
 } from "@/components/ui/popover"
-import { Check, ChevronsUpDown, Plus } from "lucide-react"
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger
+} from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { CourseRole } from "@prisma/client"
+import { Check, ChevronsUpDown, Plus } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface AddEnrollmentButtonProps {
     courseId: string

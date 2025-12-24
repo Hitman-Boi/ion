@@ -5,16 +5,16 @@ services:
     image: postgres:15
     container_name: learning-hub-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-learning_hub}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-learning_hub}
     volumes:
       - learning_hub_data:/var/lib/postgresql/data
     ports:
       - '5432:5432'
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}", "-d", "${POSTGRES_DB:-learning_hub}"]
+      test: ["CMD", "pg_isready", "-U", "${DB_USERNAME:-postgres}", "-d", "${DB_NAME:-learning_hub}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,17 +25,22 @@ services:
     build: .
     container_name: learning-hub-app
     ports:
-      - '3000:3000'
+      - '${APP_PORT:-3000}:3000'
     env_file:
-      - .env.production
+      - .env
     volumes:
       - ./antigravity_data/uploads:/app/uploads
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      DB_NAME: ${POSTGRES_DB:-learning_hub}
+      # Force app to use local DB container
+      DATABASE_URL: postgres://${DB_USERNAME:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-learning_hub}
+      # PostHog Configuration
+      POSTHOG_INGEST_HOST: ${POSTHOG_INTERNAL_API_URL:-http://posthog:8000}
+      NEXT_PUBLIC_POSTHOG_HOST: ${POSTHOG_PUBLIC_HOST:-http://localhost:8000}
+      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_CLIENT_API_KEY:-phc_placeholder_key}
+      # NextAuth Configuration
+      # Map descriptive .env vars to standard library vars
+      AUTH_SECRET: ${SESSION_ENCRYPTION_SECRET:-long_random_secret_string}
+      NEXTAUTH_URL: ${APP_BASE_URL:-http://localhost:3000}
     depends_on:
       db:
         condition: service_healthy
@@ -58,6 +63,28 @@ services:
     depends_on:
       - app
       - db
+    networks:
+      - learning_hub_network
+
+  redis:
+    image: redis:6-alpine
+    restart: always
+    networks:
+      - learning_hub_network
+
+  posthog:
+    image: posthog/posthog:release-1.116.3
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://${DB_USERNAME:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-learning_hub}
+      - REDIS_URL=redis://redis:6379/
+      - SECRET_KEY=${POSTHOG_INSTANCE_SECRET_KEY:-long_random_secret_string}
+      - SITE_URL=${POSTHOG_PUBLIC_HOST:-http://localhost:8000}
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "${POSTHOG_PORT:-8000}:8000"
     networks:
       - learning_hub_network
 

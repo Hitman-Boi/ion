@@ -1,20 +1,12 @@
 "use client";
 
+import { getRoles } from '@/app/actions/roles';
 import { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
-    MiniMap,
-    Controls,
-    Background,
-    useNodesState,
-    useEdgesState,
-    addEdge,
-    Node,
-    Edge,
-    MarkerType,
+    addEdge, Background, Controls, Edge,
+    MarkerType, MiniMap, Node, useEdgesState, useNodesState
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { getRoles } from '@/app/actions/roles';
-import { JobRole } from '@prisma/client';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];

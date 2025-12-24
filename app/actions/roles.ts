@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function createRole(data: { title: string; description?: string }) {
+export async function createRole(data: { title: string; description?: string; skillIds?: string[] }) {
     const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
         throw new Error("Unauthorized");
@@ -14,6 +14,9 @@ export async function createRole(data: { title: string; description?: string }) 
         data: {
             title: data.title,
             description: data.description,
+            skills: {
+                connect: data.skillIds?.map((id) => ({ id })),
+            }
         },
     });
 
@@ -21,7 +24,7 @@ export async function createRole(data: { title: string; description?: string }) 
     return role;
 }
 
-export async function updateRole(id: string, data: { title: string; description?: string }) {
+export async function updateRole(id: string, data: { title: string; description?: string; skillIds?: string[] }) {
     const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
         throw new Error("Unauthorized");
@@ -32,6 +35,9 @@ export async function updateRole(id: string, data: { title: string; description?
         data: {
             title: data.title,
             description: data.description,
+            skills: {
+                set: data.skillIds?.map((id) => ({ id })),
+            }
         },
     });
 

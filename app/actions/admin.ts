@@ -63,7 +63,7 @@ export async function enrollUserInCourse(courseId: string, userId: string, role:
     revalidatePath(`/admin/courses/${courseId}`)
 }
 
-export async function createCourse(title: string) {
+export async function createCourse(title: string, skillIds: string[] = []) {
     console.log("createCourse action called with title:", title)
     await checkAdmin()
     const session = await auth()
@@ -79,6 +79,9 @@ export async function createCourse(title: string) {
             data: {
                 title,
                 instructorId: session.user.id,
+                skills: {
+                    connect: skillIds.map((id) => ({ id })),
+                },
             },
         })
         console.log("Course created successfully:", course.id)
@@ -188,6 +191,18 @@ export async function restoreCourse(courseId: string) {
         where: { id: courseId },
         data: { deletedAt: null }
     })
-    revalidatePath("/admin")
+    revalidatePath(`/admin/courses/${courseId}`)
+}
+
+export async function updateCourseSkills(courseId: string, skillIds: string[]) {
+    await checkAdmin()
+    await prisma.course.update({
+        where: { id: courseId },
+        data: {
+            skills: {
+                set: skillIds.map((id) => ({ id }))
+            }
+        }
+    })
     revalidatePath(`/admin/courses/${courseId}`)
 }

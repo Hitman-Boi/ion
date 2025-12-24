@@ -1,6 +1,7 @@
 import { signIn } from "@/auth"
 import { Button } from "@/components/ui/button"
 import { AuthError } from "next-auth"
+import { isRedirectError } from "next/dist/client/components/redirect"
 import { redirect } from "next/navigation"
 
 function MicrosoftIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -57,8 +58,16 @@ export default function LoginPage() {
                         action={async (formData) => {
                             "use server"
                             try {
-                                await signIn("credentials", formData)
+                                await signIn("credentials", {
+                                    email: formData.get("email"),
+                                    password: formData.get("password"),
+                                    redirectTo: "/dashboard",
+                                })
                             } catch (error) {
+                                // On successful login, NextAuth throws a redirect error which we need to re-throw
+                                if (isRedirectError(error)) {
+                                    throw error
+                                }
                                 if (error instanceof AuthError) {
                                     return redirect(`/login?error=${error.type}`)
                                 }

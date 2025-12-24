@@ -1,4 +1,4 @@
-import type { NextAuthConfig } from "next-auth"
+import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
   pages: {
@@ -37,4 +37,5 @@ export const authConfig = {
     },
   },
   providers: [], // Configured in auth.ts
+  secret: process.env.SESSION_ENCRYPTION_SECRET,
 } satisfies NextAuthConfig

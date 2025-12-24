@@ -2,18 +2,18 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 
-import { AddEnrollmentButton } from "../../add-enrollment-button"
-import { CourseVisibilityToggle } from "../../course-visibility-toggle"
+import { removeUserFromCourse, restoreCourse } from "@/app/actions/admin"
+import { getSkills } from "@/app/actions/skills"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { CourseRole } from "@prisma/client"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Trash2, RotateCcw } from "lucide-react"
-import { restoreCourse } from "@/app/actions/admin"
+import { RotateCcw, X } from "lucide-react"
+import { AddEnrollmentButton } from "../../add-enrollment-button"
+import { CourseVisibilityToggle } from "../../course-visibility-toggle"
 import { DeleteCourseButton } from "./delete-course-button"
-import { X } from "lucide-react"
-import { removeUserFromCourse } from "@/app/actions/admin"
+import { CourseSkillsManager } from "@/components/course/course-skills-manager"
 
 export default async function CourseAdminPage({ params }: { params: { courseId: string } }) {
     const session = await auth()
@@ -22,15 +22,19 @@ export default async function CourseAdminPage({ params }: { params: { courseId: 
         redirect("/dashboard")
     }
 
-    const course = await prisma.course.findUnique({
-        where: { id: params.courseId },
-        include: {
-            enrollments: {
-                include: { user: true },
-                orderBy: { user: { name: 'asc' } }
+    const [course, allSkills] = await Promise.all([
+        prisma.course.findUnique({
+            where: { id: params.courseId },
+            include: {
+                enrollments: {
+                    include: { user: true },
+                    orderBy: { user: { name: 'asc' } }
+                },
+                skills: true
             }
-        }
-    })
+        }),
+        getSkills()
+    ])
 
     if (!course) {
         return <div className="p-8">Course not found</div>
@@ -83,10 +87,24 @@ export default async function CourseAdminPage({ params }: { params: { courseId: 
                         </Badge>
                         <h1 className="text-2xl font-bold">{course.title}</h1>
                     </div>
-                    <p className="text-muted-foreground text-sm mt-1">Manage enrollments and user roles</p>
+                    {/* Skills Display */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                        {course.skills.map(skill => (
+                            <Badge key={skill.id} variant="outline" className="text-[10px] px-1 py-0 h-4">{skill.name}</Badge>
+                        ))}
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    {!course.deletedAt && <CourseVisibilityToggle courseId={course.id} isPublic={course.isPublic} />}
+                    {!course.deletedAt && (
+                        <>
+                            <CourseSkillsManager
+                                courseId={course.id}
+                                initialStatus={course.skills.map(s => s.id)}
+                                allSkills={allSkills}
+                            />
+                            <CourseVisibilityToggle courseId={course.id} isPublic={course.isPublic} />
+                        </>
+                    )}
                     {course.deletedAt ? (
                         <form action={async () => {
                             "use server"
