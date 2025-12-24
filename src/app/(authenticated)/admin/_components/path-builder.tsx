@@ -84,10 +84,10 @@ export function PathBuilder({ learningPath, allCourses }: PathBuilderProps) {
         }
     }
 
-    const handleAddItem = async (courseId?: string, moduleId?: string) => {
+    const handleAddItem = async (courseId?: string, chapterId?: string) => {
         try {
-            const newItem = await addLearningPathItem(learningPath.id, { courseId, moduleId })
-            setItems([...items, { ...newItem, course: allCourses.find(c => c.id === courseId), module: null }]) // simplistic optimistic update
+            const newItem = await addLearningPathItem(learningPath.id, { courseId, chapterId })
+            setItems([...items, { ...newItem, course: allCourses.find(c => c.id === courseId), chapter: null }]) // simplistic optimistic update
             toast.success("Item added")
             router.refresh()
             setOpenAdd(false)
@@ -146,16 +146,16 @@ export function PathBuilder({ learningPath, allCourses }: PathBuilderProps) {
                                     </div>
 
                                     <div className="border-t pt-4">
-                                        <label className="text-sm font-medium mb-2 block">Or Select Specific Module</label>
+                                        <label className="text-sm font-medium mb-2 block">Or Select Specific Chapter</label>
                                         <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto">
-                                            {allCourses.find(c => c.id === selectedCourseId)?.modules?.map((courseModule: any) => (
-                                                <Button key={courseModule.id} variant="outline" size="sm" onClick={() => handleAddItem(undefined, courseModule.id)} className="justify-start">
+                                            {allCourses.find(c => c.id === selectedCourseId)?.chapters?.map((chapter: any) => (
+                                                <Button key={chapter.id} variant="outline" size="sm" onClick={() => handleAddItem(undefined, chapter.id)} className="justify-start">
                                                     <Plus className="w-3 h-3 mr-2 text-muted-foreground" />
-                                                    {courseModule.title}
+                                                    {chapter.title}
                                                 </Button>
                                             ))}
-                                            {(!allCourses.find(c => c.id === selectedCourseId)?.modules?.length) && (
-                                                <p className="text-xs text-muted-foreground italic">No modules in this course.</p>
+                                            {(!allCourses.find(c => c.id === selectedCourseId)?.chapters?.length) && (
+                                                <p className="text-xs text-muted-foreground italic">No chapters in this course.</p>
                                             )}
                                         </div>
                                     </div>
@@ -185,10 +185,10 @@ export function PathBuilder({ learningPath, allCourses }: PathBuilderProps) {
                                     <div className="flex items-center gap-3 p-3 bg-card border rounded-md shadow-sm">
                                         <div className="flex-1">
                                             <p className="font-medium text-sm">
-                                                {item.course?.title || item.module?.title || "Unknown Content"}
+                                                {item.course?.title || item.chapter?.title || "Unknown Content"}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {item.course ? "Full Course" : "Module"}
+                                                {item.course ? "Full Course" : "Chapter"}
                                             </p>
                                         </div>
                                         <Button

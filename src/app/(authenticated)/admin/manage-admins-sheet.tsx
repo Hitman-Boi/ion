@@ -32,10 +32,9 @@ import { useRouter } from "next/navigation"
 
 interface ManageAdminsSheetProps {
     initialAdmins: User[]
-    className?: string
 }
 
-export function ManageAdminsSheet({ initialAdmins, className }: ManageAdminsSheetProps) {
+export function ManageAdminsSheet({ initialAdmins }: ManageAdminsSheetProps) {
     const [open, setOpen] = useState(false)
     const [popoverOpen, setPopoverOpen] = useState(false)
     const [email, setEmail] = useState("")
@@ -84,7 +83,7 @@ export function ManageAdminsSheet({ initialAdmins, className }: ManageAdminsShee
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="outline" className={`gap-2 ${className}`}>
+                <Button variant="outline" className="gap-2">
                     <Shield className="h-4 w-4" />
                     Manage Admins
                 </Button>

@@ -12,7 +12,7 @@ export default async function LearnPage({ params }: { params: { courseId: string
     const course = await db.course.findUnique({
         where: { id: params.courseId },
         include: {
-            modules: {
+            chapters: {
                 orderBy: { sortOrder: 'asc' },
                 include: {
                     topics: {
@@ -29,7 +29,7 @@ export default async function LearnPage({ params }: { params: { courseId: string
     if (!course) return <div>Course not found</div>
 
     // Flatten topics to find current, prev, next
-    const allTopics = course.modules.flatMap((c) => c.topics) as (Topic & { resources: TopicResource[] })[]
+    const allTopics = course.chapters.flatMap((c) => c.topics) as (Topic & { resources: TopicResource[] })[]
     const currentIndex = allTopics.findIndex((t) => t.id === params.topicId)
 
     if (currentIndex === -1) return <div>Topic not found</div>

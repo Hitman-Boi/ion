@@ -22,6 +22,9 @@ model User {
   submissions Submission[]
   progress    UserProgress[]
   skills      UserSkill[]
+  
+  // targetRoleId String?  @map("target_role_id") // Deprecated
+  targetRoles  JobRole[] // Many-to-Many implicit relation
 
   // Instructor relations
   authoredCourses Course[] @relation("InstructorCourses")
@@ -76,37 +79,35 @@ model VerificationToken {
 }
 
 model Course {
-  id            String  @id @default(uuid())
+  id            String    @id @default(uuid())
   title         String
   description   String?
-  instructorId  String  @map("instructor_id")
-  isPublic      Boolean @default(false) @map("is_public")
-  gradingPolicy Json?   @map("grading_policy") // { "cutoffs": ..., "weights": ... }
+  instructorId  String    @map("instructor_id")
+  isPublic      Boolean   @default(false) @map("is_public")
+  gradingPolicy Json?     @map("grading_policy") // { "cutoffs": ..., "weights": ... }
   deletedAt     DateTime? @map("deleted_at")
 
   instructor User @relation("InstructorCourses", fields: [instructorId], references: [id])
-
 
   chapters    Chapter[]
   enrollments Enrollment[]
   skills      Skill[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  LearningPathItem LearningPathItem[]
 
   @@map("courses")
 }
 
-
-
 model Enrollment {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  courseId  String   @map("course_id")
-  mode      String   @default("audit") // 'audit', 'verified'
-  isActive  Boolean  @default(true) @map("is_active")
-  grade     Decimal? @db.Decimal(5, 2)
-  role      CourseRole @default(STUDENT)
+  id       String     @id @default(uuid())
+  userId   String     @map("user_id")
+  courseId String     @map("course_id")
+  mode     String     @default("audit") // 'audit', 'verified'
+  isActive Boolean    @default(true) @map("is_active")
+  grade    Decimal?   @db.Decimal(5, 2)
+  role     CourseRole @default(STUDENT)
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -162,62 +163,91 @@ enum CourseRole {
 }
 
 model JobRole {
-  id          String   @id @default(uuid())
-  title       String   @unique
+  id          String  @id @default(uuid())
+  title       String  @unique
   description String?
-  skills      Skill[]
-  paths       RolePath[] @relation("TargetRole")
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  skills        Skill[] // Skills required for this role
+  learningPaths LearningPath[] // Paths recommended for this role
+  candidates    User[] // Users aiming for this role
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("job_roles")
 }
 
 model Skill {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  category    String?
-  roles       JobRole[]
-  courses     Course[]
-  userSkills  UserSkill[]
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String      @id @default(uuid())
+  name       String      @unique
+  category   String?
+  roles      JobRole[]
+  courses    Course[]
+  userSkills UserSkill[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("skills")
 }
 
-model RolePath {
-  id           String   @id @default(uuid())
-  targetRoleId String   @map("target_role_id")
-  sourceRoleId String?  @map("source_role_id")
-  milestones   Json     @default("[]") // Array of Course IDs or other milestones
-  
-  targetRole   JobRole  @relation("TargetRole", fields: [targetRoleId], references: [id])
-  
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+model LearningPath {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
 
-  @@map("role_paths")
+  roles JobRole[]
+
+  items LearningPathItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  level PathLevel @default(BEGINNER)
+
+  @@map("learning_paths")
+}
+
+enum PathLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model LearningPathItem {
+  id             String       @id @default(uuid())
+  learningPathId String       @map("learning_path_id")
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+
+  // Polymorphic-ish: An item can be EITHER a Course OR a Chapter
+  courseId String? @map("course_id")
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  chapterId String?  @map("chapter_id")
+  chapter   Chapter? @relation(fields: [chapterId], references: [id])
+
+  orderIndex Int @map("order_index")
+
+  @@unique([learningPathId, orderIndex]) // Prevent duplicate steps
+  @@map("learning_path_items")
 }
 
 model SkillTarget {
-  id          String   @id @default(uuid())
-  skillName   String   @map("skill_name")
-  targetCount Int      @map("target_count")
-  currentCount Int     @default(0) @map("current_count")
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           String @id @default(uuid())
+  skillName    String @map("skill_name")
+  targetCount  Int    @map("target_count")
+  currentCount Int    @default(0) @map("current_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("skill_targets")
 }
 
 model UserSkill {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  skillId   String   @map("skill_id")
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  skillId    String   @map("skill_id")
   acquiredAt DateTime @default(now()) @map("acquired_at")
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -230,34 +260,35 @@ model UserSkill {
 // Micro-Learning & Atomic Tracking Models
 
 model Chapter {
-  id          String   @id @default(uuid())
-  courseId    String   @map("course_id")
+  id          String  @id @default(uuid())
+  courseId    String  @map("course_id")
   title       String
   description String?
-  sortOrder   Int      @map("sort_order")
-  
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  topics      Topic[]
+  sortOrder   Int     @map("sort_order")
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  course Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  topics Topic[]
+
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  LearningPathItem LearningPathItem[]
 
   @@map("chapters")
 }
 
 model Topic {
-  id          String   @id @default(uuid())
-  chapterId   String   @map("chapter_id")
+  id          String  @id @default(uuid())
+  chapterId   String  @map("chapter_id")
   title       String
   description String?
-  sortOrder   Int      @map("sort_order")
-  
-  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  resources   TopicResource[]
-  progress    UserProgress[]
+  sortOrder   Int     @map("sort_order")
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  chapter   Chapter         @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  resources TopicResource[]
+  progress  UserProgress[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("topics")
 }
@@ -269,19 +300,19 @@ enum ResourceType {
 }
 
 model TopicResource {
-  id          String       @id @default(uuid())
-  topicId     String       @map("topic_id")
-  type        ResourceType
-  title       String       // e.g. "Intro Video", "Handout PDF", "Concept Check"
-  contentUrl  String?      @map("content_url") // For Video/PDF
-  quizData    Json?        @map("quiz_data")   // For Quiz
-  sortOrder   Int          @default(0) @map("sort_order")
-  
+  id         String       @id @default(uuid())
+  topicId    String       @map("topic_id")
+  type       ResourceType
+  title      String // e.g. "Intro Video", "Handout PDF", "Concept Check"
+  contentUrl String?      @map("content_url") // For Video/PDF
+  quizData   Json?        @map("quiz_data") // For Quiz
+  sortOrder  Int          @default(0) @map("sort_order")
+
   topic       Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
   submissions Submission[]
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("topic_resources")
 }
@@ -293,23 +324,23 @@ enum ProgressStatus {
 }
 
 model UserProgress {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  topicId     String   @map("topic_id")
-  
+  id      String @id @default(uuid())
+  userId  String @map("user_id")
+  topicId String @map("topic_id")
+
   // The 'Truth' of the Atoms
   videoCompleted Boolean @default(false) @map("video_completed")
   pdfCompleted   Boolean @default(false) @map("pdf_completed")
   quizPassed     Boolean @default(false) @map("quiz_passed")
-  
+
   // The aggregated state
   isTopicComplete Boolean @default(false) @map("is_topic_complete") // Computed: video && pdf && quiz
-  
-  quizScore      Int?     @map("quiz_score") // The actual grade (0-100)
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  quizScore Int?     @map("quiz_score") // The actual grade (0-100)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@unique([userId, topicId])
   @@map("user_progress")

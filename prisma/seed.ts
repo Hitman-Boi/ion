@@ -9,7 +9,10 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@example.com' },
-    update: {},
+    update: {
+      password,
+      role: 'ADMIN',
+    },
     create: {
       email: 'admin@example.com',
       name: 'Admin User',
@@ -110,6 +113,40 @@ async function main() {
   })
 
   console.log({ reactSkill, advancedReactCourse })
+
+  // 4. Create Role "Senior Frontend Engineer"
+  const frontendRole = await prisma.jobRole.upsert({
+    where: { title: 'Senior Frontend Engineer' },
+    update: {},
+    create: {
+      title: 'Senior Frontend Engineer',
+      description: 'Master React, Performance, and Architecture.',
+      skills: {
+        connect: { id: reactSkill.id },
+      },
+    },
+  })
+
+  // 5. Create Learning Path
+  const learningPath = await prisma.learningPath.create({
+    data: {
+      title: 'Frontend Mastery',
+      description: 'The ultimate guide to becoming a Senior Frontend Engineer.',
+      roles: {
+        connect: { id: frontendRole.id },
+      },
+      items: {
+        create: [
+          {
+            orderIndex: 1,
+            courseId: advancedReactCourse.id,
+          },
+        ],
+      },
+    },
+  })
+
+  console.log({ frontendRole, learningPath })
 }
 main()
   .then(async () => {

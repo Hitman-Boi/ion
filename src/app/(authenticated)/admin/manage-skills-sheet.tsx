@@ -39,17 +39,16 @@ interface SkillGapData {
 interface ManageSkillsSheetProps {
     initialGapData: SkillGapData[]
     allSkills: Skill[]
-    className?: string
 }
 
-export function ManageSkillsSheet({ initialGapData, allSkills, className }: ManageSkillsSheetProps) {
+export function ManageSkillsSheet({ initialGapData, allSkills }: ManageSkillsSheetProps) {
     const [open, setOpen] = useState(false)
     const router = useRouter()
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="outline" className={`gap-2 ${className}`}>
+                <Button variant="outline" className="gap-2">
                     <Tag className="h-4 w-4" />
                     Manage Skills
                 </Button>

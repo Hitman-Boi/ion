@@ -34,14 +34,14 @@ export default async function DashboardPage() {
                                 include: {
                                     course: {
                                         include: {
-                                            modules: {
+                                            chapters: {
                                                 include: {
                                                     topics: { select: { id: true } }
                                                 }
                                             }
                                         }
                                     },
-                                    module: {
+                                    chapter: {
                                         include: {
                                             topics: { select: { id: true } }
                                         }
@@ -77,36 +77,6 @@ export default async function DashboardPage() {
     });
     const completedTopicIds = new Set(userProgress.map(p => p.topicId));
 
-    // 4. Fetch Directly Subscribed Learning Paths
-    const subscribedPaths = await prisma.userLearningPath.findMany({
-        where: { userId: session.user.id },
-        include: {
-            learningPath: {
-                include: {
-                    items: {
-                        orderBy: { orderIndex: 'asc' },
-                        include: {
-                            course: {
-                                include: {
-                                    modules: {
-                                        include: {
-                                            topics: { select: { id: true } }
-                                        }
-                                    }
-                                }
-                            },
-                            module: {
-                                include: {
-                                    topics: { select: { id: true } }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    });
-
     // Process each target role to calculate stats
     const activeGoals = user?.targetRoles.map(role => {
         const requiredSkills = role.skills.map(s => s.name);
@@ -126,8 +96,8 @@ export default async function DashboardPage() {
             for (const path of sortedPaths) {
                 const isPathComplete = path.items.every(item => {
                     const topics = item.course
-                        ? item.course.modules.flatMap(c => c.topics)
-                        : item.module?.topics || [];
+                        ? item.course.chapters.flatMap(c => c.topics)
+                        : item.chapter?.topics || [];
                     return topics.length > 0 && topics.every(t => completedTopicIds.has(t.id));
                 });
 
@@ -147,36 +117,6 @@ export default async function DashboardPage() {
         };
     }) || [];
 
-    // Process subscribed paths (direct subscriptions, not via roles)
-    const subscribedPathsData = subscribedPaths.map(sub => {
-        const path = sub.learningPath;
-        const allItems = path.items;
-        let totalTopics = 0;
-        let completedTopics = 0;
-
-        allItems.forEach(item => {
-            const topics = item.course
-                ? item.course.modules.flatMap(c => c.topics)
-                : item.module?.topics || [];
-            totalTopics += topics.length;
-            completedTopics += topics.filter(t => completedTopicIds.has(t.id)).length;
-        });
-
-        const progress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
-
-        return {
-            path,
-            progress,
-            totalSteps: allItems.length,
-            completedSteps: allItems.filter(item => {
-                const topics = item.course
-                    ? item.course.modules.flatMap(c => c.topics)
-                    : item.module?.topics || [];
-                return topics.length > 0 && topics.every(t => completedTopicIds.has(t.id));
-            }).length
-        };
-    });
-
     // (teachingCourses fetch logic removed)
 
     // 2. Fetch Enrolled Courses
@@ -191,7 +131,7 @@ export default async function DashboardPage() {
         include: {
             course: {
                 include: {
-                    modules: {
+                    chapters: {
                         include: {
                             topics: { select: { id: true } }
                         }
@@ -212,9 +152,9 @@ export default async function DashboardPage() {
                     </p>
                 </div>
 
-                <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     {/* LEFT PANE: My Courses (2/3 width -> col-span-8) */}
-                    <section className="order-2 lg:order-none lg:col-span-8 space-y-6">
+                    <section className="lg:col-span-8 space-y-6">
 
                         {/* Header with Explore Link */}
                         <div className="flex items-center justify-between">
@@ -240,8 +180,8 @@ export default async function DashboardPage() {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {enrollments.map((enrollment) => {
-                                    // Flatten all topics from modules > topics
-                                    const allTopics = enrollment.course.modules.flatMap(m => m.topics);
+                                    // Flatten all topics from chapters > topics
+                                    const allTopics = enrollment.course.chapters.flatMap(ch => ch.topics);
 
                                     const totalSteps = allTopics.length;
                                     const completedSteps = allTopics.filter(t => completedTopicIds.has(t.id)).length;
@@ -298,7 +238,7 @@ export default async function DashboardPage() {
                     </section>
 
                     {/* RIGHT PANE: Career Paths (1/3 width -> col-span-4) */}
-                    <aside className="order-1 lg:order-none lg:col-span-4 space-y-8">
+                    <aside className="lg:col-span-4 space-y-8">
 
                         {/* 1. Career Paths */}
                         <div className="space-y-4">
@@ -312,9 +252,8 @@ export default async function DashboardPage() {
                                 </Button>
                             </div>
 
-                            {(activeGoals.length > 0 || subscribedPathsData.length > 0) ? (
+                            {activeGoals.length > 0 ? (
                                 <div className="space-y-6">
-                                    {/* Role-based goals */}
                                     {activeGoals.map(goal => (
                                         <div key={goal.role.id} className="h-full">
                                             <GoalCard
@@ -331,41 +270,13 @@ export default async function DashboardPage() {
                                         </div>
                                     ))}
 
-                                    {/* Directly subscribed paths */}
-                                    {subscribedPathsData.map(({ path, progress, totalSteps, completedSteps }) => (
-                                        <Card key={path.id} className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-                                            <CardHeader className="pb-3">
-                                                <div className="flex items-center justify-between">
-                                                    <Badge variant="outline" className="text-[10px] uppercase tracking-widest">
-                                                        Subscribed Path
-                                                    </Badge>
-                                                    {progress === 100 && (
-                                                        <Badge className="bg-green-500 hover:bg-green-600 text-[10px]">Complete</Badge>
-                                                    )}
-                                                </div>
-                                                <CardTitle className="text-lg line-clamp-1">{path.title}</CardTitle>
-                                                {path.description && (
-                                                    <CardDescription className="line-clamp-2">{path.description}</CardDescription>
-                                                )}
-                                            </CardHeader>
-                                            <CardContent className="pb-3">
-                                                <div className="space-y-2">
-                                                    <div className="flex justify-between text-xs font-medium">
-                                                        <span>{progress}% Complete</span>
-                                                        <span>{completedSteps}/{totalSteps} Milestones</span>
-                                                    </div>
-                                                    <Progress value={progress} className="h-2" />
-                                                </div>
-                                            </CardContent>
-                                            <CardFooter>
-                                                <Button asChild className="w-full" size="sm">
-                                                    <Link href={`/learning-paths/${path.id}`}>
-                                                        {progress > 0 ? "Continue Path" : "Start Path"}
-                                                    </Link>
-                                                </Button>
-                                            </CardFooter>
-                                        </Card>
-                                    ))}
+                                    {/* Small add button if they have goals but want more? 
+                                        The "Explore More Paths" link is already at the top.
+                                        Maybe we don't need the dashed card here if the header link exists.
+                                        But keeping it for consistency if they want to 'add' directly.
+                                        Let's keep the user's intent: "Explore more... should take user to /learning-paths"
+                                        So I'll remove the dashed card and rely on the header link to avoid redundancy.
+                                     */}
                                 </div>
                             ) : (
                                 <div className="p-6 bg-primary/5 rounded-xl border border-primary/10">

@@ -76,7 +76,7 @@ export function PathEditorSheet({ open, onOpenChange, path, allCourses, onSave }
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+            <SheetContent className="sm:max-w-2xl overflow-y-auto w-[600px]">
                 <SheetHeader>
                     <SheetTitle>{path ? `Edit Path: ${path.title}` : "Create New Learning Path"}</SheetTitle>
                     <SheetDescription>

@@ -15,7 +15,7 @@ interface RolesListProps {
 
 export function RolesList({ roles, selectedRole, onSelectRole, onCreateRole }: RolesListProps) {
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full border-r">
             <div className="p-4 border-b flex items-center justify-between bg-muted/30">
                 <h3 className="font-semibold flex items-center gap-2">
                     <Briefcase className="w-4 h-4" />

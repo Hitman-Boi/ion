@@ -1,7 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getLearningPaths } from "@/app/actions/learning-paths.actions"
 import { getRoles } from "@/app/actions/roles.actions"
 import { RolesList } from "./roles-list"
@@ -53,52 +52,24 @@ export default function RolesPageWrapper({
     }
 
     return (
-        <>
-            {/* Mobile View: Tabs */}
-            <div className="md:hidden h-[calc(100vh-65px)]">
-                <Tabs defaultValue="roles" className="h-full flex flex-col">
-                    <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
-                        <TabsTrigger value="roles">Job Roles</TabsTrigger>
-                        <TabsTrigger value="paths">Learning Paths</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="roles" className="flex-1 m-0 overflow-hidden">
-                        <RolesList
-                            roles={roles}
-                            selectedRole={selectedRole}
-                            onSelectRole={handleEditRole}
-                            onCreateRole={handleCreateRole}
-                        />
-                    </TabsContent>
-                    <TabsContent value="paths" className="flex-1 m-0 overflow-hidden">
-                        <LearningPathsList
-                            paths={learningPaths}
-                            onSelectPath={handleEditPath}
-                            onCreatePath={handleCreatePath}
-                        />
-                    </TabsContent>
-                </Tabs>
+        <div className="flex h-[calc(100vh-65px)] overflow-hidden">
+            {/* Left Pane: Roles */}
+            <div className="w-1/3 min-w-[300px] border-r">
+                <RolesList
+                    roles={roles}
+                    selectedRole={selectedRole}
+                    onSelectRole={handleEditRole}
+                    onCreateRole={handleCreateRole}
+                />
             </div>
 
-            {/* Desktop View: Side by Side */}
-            <div className="hidden md:flex h-[calc(100vh-65px)] overflow-hidden">
-                {/* Left Pane: Roles */}
-                <div className="w-1/3 min-w-[300px] border-r">
-                    <RolesList
-                        roles={roles}
-                        selectedRole={selectedRole}
-                        onSelectRole={handleEditRole}
-                        onCreateRole={handleCreateRole}
-                    />
-                </div>
-
-                {/* Right Pane: Learning Paths */}
-                <div className="flex-1 min-w-[400px]">
-                    <LearningPathsList
-                        paths={learningPaths}
-                        onSelectPath={handleEditPath}
-                        onCreatePath={handleCreatePath}
-                    />
-                </div>
+            {/* Right Pane: Learning Paths */}
+            <div className="flex-1 min-w-[400px]">
+                <LearningPathsList
+                    paths={learningPaths}
+                    onSelectPath={handleEditPath}
+                    onCreatePath={handleCreatePath}
+                />
             </div>
 
             {/* Sheets */}
@@ -117,6 +88,6 @@ export default function RolesPageWrapper({
                 allCourses={allCourses}
                 onSave={refreshData}
             />
-        </>
+        </div>
     )
 }

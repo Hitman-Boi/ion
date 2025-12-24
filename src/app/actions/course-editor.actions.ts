@@ -46,19 +46,19 @@ async function checkCourseOwnerOrAdmin(courseId: string) {
     return true
 }
 
-// --- MODULES ---
+// --- CHAPTERS ---
 
-export async function createModule(courseId: string, title: string) {
+export async function createChapter(courseId: string, title: string) {
     await checkAuth()
 
-    const lastModule = await db.module.findFirst({
+    const lastChapter = await db.chapter.findFirst({
         where: { courseId },
         orderBy: { sortOrder: 'desc' },
     })
 
-    const newOrder = lastModule ? lastModule.sortOrder + 1 : 1
+    const newOrder = lastChapter ? lastChapter.sortOrder + 1 : 1
 
-    const newModule = await db.module.create({
+    const chapter = await db.chapter.create({
         data: {
             courseId,
             title,
@@ -67,14 +67,14 @@ export async function createModule(courseId: string, title: string) {
     })
 
     revalidatePath(`/courses/${courseId}/studio`)
-    return newModule
+    return chapter
 }
 
-export async function reorderModules(courseId: string, updates: { id: string; sortOrder: number }[]) {
+export async function reorderChapters(courseId: string, updates: { id: string; sortOrder: number }[]) {
     await checkAuth()
 
     const transaction = updates.map((update) =>
-        db.module.update({
+        db.chapter.update({
             where: { id: update.id, courseId },
             data: { sortOrder: update.sortOrder },
         })
@@ -84,18 +84,18 @@ export async function reorderModules(courseId: string, updates: { id: string; so
     revalidatePath(`/courses/${courseId}/studio`)
 }
 
-export async function deleteModule(moduleId: string, courseId: string) {
+export async function deleteChapter(chapterId: string, courseId: string) {
     await checkAuth()
-    await db.module.delete({
-        where: { id: moduleId }
+    await db.chapter.delete({
+        where: { id: chapterId }
     })
     revalidatePath(`/courses/${courseId}/studio`)
 }
 
-export async function updateModule(moduleId: string, courseId: string, title: string) {
+export async function updateChapter(chapterId: string, courseId: string, title: string) {
     await checkAuth()
-    await db.module.update({
-        where: { id: moduleId },
+    await db.chapter.update({
+        where: { id: chapterId },
         data: { title }
     })
     revalidatePath(`/courses/${courseId}/studio`)
@@ -103,11 +103,11 @@ export async function updateModule(moduleId: string, courseId: string, title: st
 
 // --- TOPICS ---
 
-export async function createTopic(moduleId: string, title: string, courseId: string) { // courseId for revalidation
+export async function createTopic(chapterId: string, title: string, courseId: string) { // courseId for revalidation
     await checkAuth()
 
     const lastTopic = await db.topic.findFirst({
-        where: { moduleId },
+        where: { chapterId },
         orderBy: { sortOrder: 'desc' },
     })
 
@@ -115,7 +115,7 @@ export async function createTopic(moduleId: string, title: string, courseId: str
 
     const topic = await db.topic.create({
         data: {
-            moduleId,
+            chapterId,
             title,
             sortOrder: newOrder,
         },
@@ -125,16 +125,16 @@ export async function createTopic(moduleId: string, title: string, courseId: str
     return topic
 }
 
-export async function reorderTopics(updates: { id: string; sortOrder: number; moduleId: string }[], courseId: string) {
+export async function reorderTopics(updates: { id: string; sortOrder: number; chapterId: string }[], courseId: string) {
     await checkAuth()
 
-    // Note: If dragging between modules, update moduleId too
+    // Note: If dragging between chapters, update chapterId too
     const transaction = updates.map((update) =>
         db.topic.update({
             where: { id: update.id },
             data: {
                 sortOrder: update.sortOrder,
-                moduleId: update.moduleId
+                chapterId: update.chapterId
             },
         })
     )
@@ -242,7 +242,7 @@ export async function getCourseHierarchy(courseId: string) {
     return await db.course.findUnique({
         where: { id: courseId },
         include: {
-            modules: {
+            chapters: {
                 orderBy: { sortOrder: 'asc' },
                 include: {
                     topics: {

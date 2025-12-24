@@ -1,6 +1,6 @@
 'use client'
 
-import { createModule, createTopic, deleteModule, deleteTopic, reorderModules, reorderTopics } from '@/app/actions/course-editor.actions'
+import { createChapter, createTopic, deleteChapter, deleteTopic, reorderChapters, reorderTopics } from '@/app/actions/course-editor.actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -18,9 +18,9 @@ import { toast } from 'sonner'
 import { TopicEditorDrawer } from './TopicEditorDrawer'
 import { CourseSkillsManager } from '@/components/course/course-skills-manager'
 
-// --- SORTABLE MODULE ---
-function SortableModule({ id, children }: { id: string, children: React.ReactNode }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'module' } })
+// --- SORTABLE CHAPTER ---
+function SortableChapter({ id, children }: { id: string, children: React.ReactNode }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'chapter' } })
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
     return (
@@ -37,7 +37,7 @@ function SortableModule({ id, children }: { id: string, children: React.ReactNod
 
 // --- SORTABLE TOPIC ---
 function SortableTopic({ id, topic, courseId, onEdit, onDelete }: { id: string, topic: any, courseId: string, onEdit: () => void, onDelete: () => void }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'topic', moduleId: topic.moduleId } })
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'topic', chapterId: topic.chapterId } })
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
     return (
@@ -83,23 +83,23 @@ function SortableTopic({ id, topic, courseId, onEdit, onDelete }: { id: string, 
 }
 
 // --- INPUT SHEET STATE ---
-type SheetMode = 'module' | 'topic' | 'delete-module' | 'delete-topic' | null
+type SheetMode = 'chapter' | 'topic' | 'delete-chapter' | 'delete-topic' | null
 
 interface InputSheetState {
     mode: SheetMode
     title: string
-    targetModuleId?: string
+    targetChapterId?: string
     targetTopicId?: string
 }
 
 // --- MAIN COMPONENT ---
 export function CreatorStudio({ course, allSkills }: { course: any, allSkills: any[] }) {
-    const [modules, setModules] = useState(course.modules)
+    const [chapters, setChapters] = useState(course.chapters)
     const [editingTopic, setEditingTopic] = useState<any | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [sheetState, setSheetState] = useState<InputSheetState>({ mode: null, title: '' })
     const [activeId, setActiveId] = useState<string | null>(null)
-    const [activeType, setActiveType] = useState<'module' | 'topic' | null>(null)
+    const [activeType, setActiveType] = useState<'chapter' | 'topic' | null>(null)
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -107,7 +107,7 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
     )
 
     // Get all topic IDs for SortableContext
-    const allTopicIds = modules.flatMap((c: any) => c.topics.map((t: any) => t.id))
+    const allTopicIds = chapters.flatMap((c: any) => c.topics.map((t: any) => t.id))
 
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event
@@ -125,102 +125,102 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
         const activeData = active.data.current
         const overData = over.data.current
 
-        // Module reordering
-        if (activeData?.type === 'module' && overData?.type === 'module') {
-            const oldIndex = modules.findIndex((c: any) => c.id === active.id)
-            const newIndex = modules.findIndex((c: any) => c.id === over.id)
-            const newModules = arrayMove(modules, oldIndex, newIndex)
-            setModules(newModules)
-            await reorderModules(course.id, newModules.map((c: any, i) => ({ id: c.id, sortOrder: i })))
+        // Chapter reordering
+        if (activeData?.type === 'chapter' && overData?.type === 'chapter') {
+            const oldIndex = chapters.findIndex((c: any) => c.id === active.id)
+            const newIndex = chapters.findIndex((c: any) => c.id === over.id)
+            const newChapters = arrayMove(chapters, oldIndex, newIndex)
+            setChapters(newChapters)
+            await reorderChapters(course.id, newChapters.map((c: any, i) => ({ id: c.id, sortOrder: i })))
             return
         }
 
-        // Topic reordering within same module
+        // Topic reordering within same chapter
         if (activeData?.type === 'topic') {
-            const activeModuleId = activeData.moduleId
-            let overModuleId = overData?.moduleId || activeModuleId
+            const activeChapterId = activeData.chapterId
+            let overChapterId = overData?.chapterId || activeChapterId
 
-            // Find which module the topic was dropped into
-            const overModule = modules.find((c: any) => c.topics.some((t: any) => t.id === over.id))
-            if (overModule) overModuleId = overModule.id
+            // Find which chapter the topic was dropped into
+            const overChapter = chapters.find((c: any) => c.topics.some((t: any) => t.id === over.id))
+            if (overChapter) overChapterId = overChapter.id
 
-            // Get topics from active and over modules
-            const activeModule = modules.find((c: any) => c.id === activeModuleId)
-            const targetModule = modules.find((c: any) => c.id === overModuleId)
+            // Get topics from active and over chapters
+            const activeChapter = chapters.find((c: any) => c.id === activeChapterId)
+            const targetChapter = chapters.find((c: any) => c.id === overChapterId)
 
-            if (!activeModule || !targetModule) return
+            if (!activeChapter || !targetChapter) return
 
-            const activeTopic = activeModule.topics.find((t: any) => t.id === active.id)
+            const activeTopic = activeChapter.topics.find((t: any) => t.id === active.id)
             if (!activeTopic) return
 
-            // Same module reorder
-            if (activeModuleId === overModuleId) {
-                const oldIndex = targetModule.topics.findIndex((t: any) => t.id === active.id)
-                const newIndex = targetModule.topics.findIndex((t: any) => t.id === over.id)
-                const reorderedTopics = arrayMove(targetModule.topics, oldIndex, newIndex)
+            // Same chapter reorder
+            if (activeChapterId === overChapterId) {
+                const oldIndex = targetChapter.topics.findIndex((t: any) => t.id === active.id)
+                const newIndex = targetChapter.topics.findIndex((t: any) => t.id === over.id)
+                const reorderedTopics = arrayMove(targetChapter.topics, oldIndex, newIndex)
 
-                setModules(modules.map((c: any) =>
-                    c.id === activeModuleId ? { ...c, topics: reorderedTopics } : c
+                setChapters(chapters.map((c: any) =>
+                    c.id === activeChapterId ? { ...c, topics: reorderedTopics } : c
                 ))
 
                 await reorderTopics(
-                    reorderedTopics.map((t: any, i) => ({ id: t.id, sortOrder: i, moduleId: activeModuleId })),
+                    reorderedTopics.map((t: any, i) => ({ id: t.id, sortOrder: i, chapterId: activeChapterId })),
                     course.id
                 )
             } else {
-                // Move topic to different module
-                const newActiveTopics = activeModule.topics.filter((t: any) => t.id !== active.id)
-                const overIndex = targetModule.topics.findIndex((t: any) => t.id === over.id)
-                const newTargetTopics = [...targetModule.topics]
-                newTargetTopics.splice(overIndex >= 0 ? overIndex : newTargetTopics.length, 0, { ...activeTopic, moduleId: overModuleId })
+                // Move topic to different chapter
+                const newActiveTopics = activeChapter.topics.filter((t: any) => t.id !== active.id)
+                const overIndex = targetChapter.topics.findIndex((t: any) => t.id === over.id)
+                const newTargetTopics = [...targetChapter.topics]
+                newTargetTopics.splice(overIndex >= 0 ? overIndex : newTargetTopics.length, 0, { ...activeTopic, chapterId: overChapterId })
 
-                setModules(modules.map((c: any) => {
-                    if (c.id === activeModuleId) return { ...c, topics: newActiveTopics }
-                    if (c.id === overModuleId) return { ...c, topics: newTargetTopics }
+                setChapters(chapters.map((c: any) => {
+                    if (c.id === activeChapterId) return { ...c, topics: newActiveTopics }
+                    if (c.id === overChapterId) return { ...c, topics: newTargetTopics }
                     return c
                 }))
 
-                // Update both modules
+                // Update both chapters
                 const updates = [
-                    ...newActiveTopics.map((t: any, i: number) => ({ id: t.id, sortOrder: i, moduleId: activeModuleId })),
-                    ...newTargetTopics.map((t: any, i: number) => ({ id: t.id, sortOrder: i, moduleId: overModuleId }))
+                    ...newActiveTopics.map((t: any, i: number) => ({ id: t.id, sortOrder: i, chapterId: activeChapterId })),
+                    ...newTargetTopics.map((t: any, i: number) => ({ id: t.id, sortOrder: i, chapterId: overChapterId }))
                 ]
                 await reorderTopics(updates, course.id)
             }
         }
     }
 
-    const openAddModuleSheet = () => setSheetState({ mode: 'module', title: '' })
-    const openAddTopicSheet = (moduleId: string) => setSheetState({ mode: 'topic', title: '', targetModuleId: moduleId })
-    const openDeleteModuleSheet = (moduleId: string) => setSheetState({ mode: 'delete-module', title: '', targetModuleId: moduleId })
+    const openAddChapterSheet = () => setSheetState({ mode: 'chapter', title: '' })
+    const openAddTopicSheet = (chapterId: string) => setSheetState({ mode: 'topic', title: '', targetChapterId: chapterId })
+    const openDeleteChapterSheet = (chapterId: string) => setSheetState({ mode: 'delete-chapter', title: '', targetChapterId: chapterId })
     const openDeleteTopicSheet = (topicId: string) => setSheetState({ mode: 'delete-topic', title: '', targetTopicId: topicId })
     const closeSheet = () => setSheetState({ mode: null, title: '' })
 
     const handleSheetSubmit = async () => {
         setIsLoading(true)
         try {
-            if (sheetState.mode === 'module' && sheetState.title.trim()) {
-                const newModule = await createModule(course.id, sheetState.title.trim())
-                setModules([...modules, { ...newModule, topics: [] }])
-                toast.success('Module created')
+            if (sheetState.mode === 'chapter' && sheetState.title.trim()) {
+                const newChapter = await createChapter(course.id, sheetState.title.trim())
+                setChapters([...chapters, { ...newChapter, topics: [] }])
+                toast.success('Chapter created')
                 closeSheet()
-            } else if (sheetState.mode === 'topic' && sheetState.title.trim() && sheetState.targetModuleId) {
-                const newTopic = await createTopic(sheetState.targetModuleId, sheetState.title.trim(), course.id)
-                setModules(modules.map((c: any) =>
-                    c.id === sheetState.targetModuleId
-                        ? { ...c, topics: [...c.topics, { ...newTopic, resources: [], moduleId: c.id }] }
+            } else if (sheetState.mode === 'topic' && sheetState.title.trim() && sheetState.targetChapterId) {
+                const newTopic = await createTopic(sheetState.targetChapterId, sheetState.title.trim(), course.id)
+                setChapters(chapters.map((c: any) =>
+                    c.id === sheetState.targetChapterId
+                        ? { ...c, topics: [...c.topics, { ...newTopic, resources: [], chapterId: c.id }] }
                         : c
                 ))
                 toast.success('Topic created')
                 closeSheet()
-            } else if (sheetState.mode === 'delete-module' && sheetState.targetModuleId) {
-                await deleteModule(sheetState.targetModuleId, course.id)
-                setModules(modules.filter((c: any) => c.id !== sheetState.targetModuleId))
-                toast.success('Module deleted')
+            } else if (sheetState.mode === 'delete-chapter' && sheetState.targetChapterId) {
+                await deleteChapter(sheetState.targetChapterId, course.id)
+                setChapters(chapters.filter((c: any) => c.id !== sheetState.targetChapterId))
+                toast.success('Chapter deleted')
                 closeSheet()
             } else if (sheetState.mode === 'delete-topic' && sheetState.targetTopicId) {
                 await deleteTopic(sheetState.targetTopicId, course.id)
-                setModules(modules.map((c: any) => ({
+                setChapters(chapters.map((c: any) => ({
                     ...c,
                     topics: c.topics.filter((t: any) => t.id !== sheetState.targetTopicId)
                 })))
@@ -237,9 +237,9 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
 
     const getSheetTitle = () => {
         switch (sheetState.mode) {
-            case 'module': return 'Add New Module'
+            case 'chapter': return 'Add New Chapter'
             case 'topic': return 'Add New Topic'
-            case 'delete-module': return 'Delete Module'
+            case 'delete-chapter': return 'Delete Chapter'
             case 'delete-topic': return 'Delete Topic'
             default: return ''
         }
@@ -247,19 +247,19 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
 
     const getSheetDescription = () => {
         switch (sheetState.mode) {
-            case 'module': return 'Enter a title for the new module.'
+            case 'chapter': return 'Enter a title for the new chapter.'
             case 'topic': return 'Enter a title for the new topic.'
-            case 'delete-module': return 'Are you sure? This will delete all topics in this module.'
+            case 'delete-chapter': return 'Are you sure? This will delete all topics in this chapter.'
             case 'delete-topic': return 'Are you sure? This will delete all resources in this topic.'
             default: return ''
         }
     }
 
-    const isDeleteMode = sheetState.mode === 'delete-module' || sheetState.mode === 'delete-topic'
+    const isDeleteMode = sheetState.mode === 'delete-chapter' || sheetState.mode === 'delete-topic'
 
     // Callback to refresh topic resources after edit
     const handleTopicUpdate = (topicId: string, newResources: any[]) => {
-        setModules(modules.map((c: any) => ({
+        setChapters(chapters.map((c: any) => ({
             ...c,
             topics: c.topics.map((t: any) => t.id === topicId ? { ...t, resources: newResources } : t)
         })))
@@ -270,7 +270,7 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
             <header className="flex justify-between items-center border-b border-white/10 pb-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-white mb-2">{course.title}</h1>
-                    <p className="text-gray-400">Drag modules or topics to reorder. Click topics to add content.</p>
+                    <p className="text-gray-400">Drag chapters or topics to reorder. Click topics to add content.</p>
                 </div>
                 <div className="flex gap-2">
                     <CourseSkillsManager
@@ -278,8 +278,8 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
                         initialStatus={course.skills.map((s: any) => s.id)}
                         allSkills={allSkills}
                     />
-                    <Button onClick={openAddModuleSheet} className="bg-white text-black hover:bg-gray-200">
-                        <Plus className="w-4 h-4 mr-2" /> New Module
+                    <Button onClick={openAddChapterSheet} className="bg-white text-black hover:bg-gray-200">
+                        <Plus className="w-4 h-4 mr-2" /> New Chapter
                     </Button>
                 </div>
             </header>
@@ -290,42 +290,42 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
             >
-                <SortableContext items={modules.map((c: any) => c.id)} strategy={verticalListSortingStrategy}>
+                <SortableContext items={chapters.map((c: any) => c.id)} strategy={verticalListSortingStrategy}>
                     <div className="space-y-4">
-                        {modules.map((module: any) => (
-                            <SortableModule key={module.id} id={module.id}>
+                        {chapters.map((chapter: any) => (
+                            <SortableChapter key={chapter.id} id={chapter.id}>
                                 <div className="flex-1 bg-[#16181d] border border-white/5 rounded-xl overflow-hidden group">
                                     <div className="p-4 bg-white/5 flex justify-between items-center border-b border-white/5">
-                                        <h2 className="font-semibold text-lg">{module.title}</h2>
-                                        <div className="flex gap-2">
-                                            <Button size="sm" variant="ghost" onClick={() => openAddTopicSheet(module.id)}>
+                                        <h2 className="font-semibold text-lg">{chapter.title}</h2>
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button size="sm" variant="ghost" onClick={() => openAddTopicSheet(chapter.id)}>
                                                 <Plus className="w-4 h-4 mr-1" /> Add Topic
                                             </Button>
-                                            <Button size="icon" variant="ghost" className="text-red-400" onClick={() => openDeleteModuleSheet(module.id)}>
+                                            <Button size="icon" variant="ghost" className="text-red-400" onClick={() => openDeleteChapterSheet(chapter.id)}>
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>
                                         </div>
                                     </div>
 
                                     <div className="p-4 space-y-2">
-                                        {module.topics.length === 0 && (
+                                        {chapter.topics.length === 0 && (
                                             <div className="text-sm text-gray-600 italic py-4 text-center">No topics yet. Add one above.</div>
                                         )}
-                                        <SortableContext items={module.topics.map((t: any) => t.id)} strategy={verticalListSortingStrategy}>
-                                            {module.topics.map((topic: any) => (
+                                        <SortableContext items={chapter.topics.map((t: any) => t.id)} strategy={verticalListSortingStrategy}>
+                                            {chapter.topics.map((topic: any) => (
                                                 <SortableTopic
                                                     key={topic.id}
                                                     id={topic.id}
-                                                    topic={{ ...topic, moduleId: module.id }}
+                                                    topic={{ ...topic, chapterId: chapter.id }}
                                                     courseId={course.id}
-                                                    onEdit={() => setEditingTopic({ ...topic, moduleId: module.id })}
+                                                    onEdit={() => setEditingTopic({ ...topic, chapterId: chapter.id })}
                                                     onDelete={() => openDeleteTopicSheet(topic.id)}
                                                 />
                                             ))}
                                         </SortableContext>
                                     </div>
                                 </div>
-                            </SortableModule>
+                            </SortableChapter>
                         ))}
                     </div>
                 </SortableContext>
@@ -353,7 +353,7 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
                         <div className="py-6">
                             <Input
                                 autoFocus
-                                placeholder={sheetState.mode === 'module' ? 'e.g. Getting Started' : 'e.g. Introduction Video'}
+                                placeholder={sheetState.mode === 'chapter' ? 'e.g. Getting Started' : 'e.g. Introduction Video'}
                                 value={sheetState.title}
                                 onChange={(e) => setSheetState({ ...sheetState, title: e.target.value })}
                                 onKeyDown={(e) => { if (e.key === 'Enter' && sheetState.title.trim()) handleSheetSubmit() }}

@@ -19,28 +19,7 @@ function MicrosoftIcon(props: React.SVGProps<SVGSVGElement>) {
     )
 }
 
-export default async function LoginPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ error?: string }>
-}) {
-    const { error } = await searchParams
-
-    const getErrorMessage = (errorType?: string) => {
-        switch (errorType) {
-            case "CredentialsSignin":
-                return "Invalid email or password. Please try again."
-            case "Configuration":
-                return "There is a problem with the server configuration."
-            case "AccessDenied":
-                return "Access denied. You do not have permission to sign in."
-            default:
-                return errorType ? "An error occurred during sign in. Please try again." : null
-        }
-    }
-
-    const errorMessage = getErrorMessage(error)
-
+export default function LoginPage() {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
             <div className="w-full max-w-md space-y-8 rounded-xl border bg-white p-10 shadow-lg dark:border-gray-800 dark:bg-gray-950">
@@ -50,12 +29,6 @@ export default async function LoginPage({
                         Sign in to your account to continue
                     </p>
                 </div>
-
-                {errorMessage && (
-                    <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-                        <p className="text-sm text-red-700 dark:text-red-400">{errorMessage}</p>
-                    </div>
-                )}
 
                 <div className="space-y-6">
                     <form

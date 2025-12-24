@@ -32,12 +32,12 @@ export default async function CourseIdPage({
     let nextTopicId = null;
     let firstTopicId = null;
 
-    if (course.modules.length > 0 && course.modules[0].topics.length > 0) {
-        firstTopicId = course.modules[0].topics[0].id;
+    if (course.chapters.length > 0 && course.chapters[0].topics.length > 0) {
+        firstTopicId = course.chapters[0].topics[0].id;
 
         if (isEnrolled) {
             // Flatten topics to search easily
-            const allTopics = course.modules.flatMap(c => c.topics);
+            const allTopics = course.chapters.flatMap(c => c.topics);
             const incompleteTopic = allTopics.find(t =>
                 !t.progress || t.progress.length === 0 || !t.progress[0].isTopicComplete
             );
@@ -96,14 +96,14 @@ export default async function CourseIdPage({
                         <div>
                             <h2 className="text-2xl font-bold mb-6">Course Content</h2>
                             <div className="space-y-4">
-                                {course.modules.map((module) => (
-                                    <div key={module.id} className="border border-white/10 rounded-lg overflow-hidden bg-white/5">
+                                {course.chapters.map((chapter) => (
+                                    <div key={chapter.id} className="border border-white/10 rounded-lg overflow-hidden bg-white/5">
                                         <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
-                                            <h3 className="font-medium text-white">{module.title}</h3>
-                                            <span className="text-xs text-muted-foreground">{module.topics.length} topics</span>
+                                            <h3 className="font-medium text-white">{chapter.title}</h3>
+                                            <span className="text-xs text-muted-foreground">{chapter.topics.length} topics</span>
                                         </div>
                                         <div>
-                                            {module.topics.map((topic) => {
+                                            {chapter.topics.map((topic) => {
                                                 const isCompleted = isEnrolled && topic.progress && topic.progress.length > 0 && topic.progress[0].isTopicComplete;
 
                                                 return (
@@ -150,7 +150,7 @@ export default async function CourseIdPage({
                             <ul className="space-y-3 text-sm text-muted-foreground">
                                 <li className="flex items-center gap-2">
                                     <CheckCircle className="w-4 h-4 text-indigo-400" />
-                                    <span>{course.modules.reduce((acc, c) => acc + c.topics.length, 0)} bite-sized lessons</span>
+                                    <span>{course.chapters.reduce((acc, c) => acc + c.topics.length, 0)} bite-sized lessons</span>
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <CheckCircle className="w-4 h-4 text-indigo-400" />
