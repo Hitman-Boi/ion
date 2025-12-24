@@ -1,46 +1,40 @@
-import NextAuth from 'next-auth';
-import AzureAD from 'next-auth/providers/azure-ad';
+import type { NextAuthConfig } from "next-auth"
 
-export default NextAuth({
-  providers: [
-    AzureAD({
-      clientId: process.env.NEXTAUTH_AZURE_AD_CLIENT_ID!,
-      clientSecret: process.env.NEXTAUTH_AZURE_AD_CLIENT_SECRET!,
-      tenantId: process.env.NEXTAUTH_AZURE_AD_TENANT_ID
-    })
-  ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 5 * 60 // 5 minutes pre-expiry refresh
-  },
-  jwt: {
-    maxAge: 30 * 24 * 60 * 60 // 30 days
+export const authConfig = {
+  pages: {
+    signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, account, user }) {
-      if (account) {
-        token.accessToken = account.access_token;
-        token.accessTokenExpires = account.expires_at;
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
+      if (isOnDashboard) {
+        if (isLoggedIn) return true;
+        return false; // Redirect unauthenticated users to login page
+      } else if (isLoggedIn) {
+        // Redirect logged-in users away from login page
+        if (nextUrl.pathname === '/login') {
+          return Response.redirect(new URL('/dashboard', nextUrl));
+        }
+      }
+      return true;
+    },
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id || '';
+        // @ts-ignore - role is not defined in default User type yet
+        token.role = (user as any).role;
       }
       return token;
     },
-    async session({ session, token }) {
-      if (token.accessTokenExpires && Date.now() < (token.accessTokenExpires as number) * 1000) {
-        (session as any).accessToken = token.accessToken;
+    session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        // @ts-ignore
+        session.user.role = token.role as string;
       }
       return session;
-    }
+    },
   },
-  cookies: {
-    sessionToken: {
-      name: 'next-auth.session-token',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production'
-      }
-    }
-  }
-});
+  providers: [], // Configured in auth.ts
+} satisfies NextAuthConfig

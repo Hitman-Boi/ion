@@ -1,50 +1,174 @@
 generator client {
-  provider = "prisma-client-js"
-}
-
-generator testClient {
-  provider = "prisma-client-js"
-  output   = "./prisma/test-client"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-// Test database configuration
-generator test {
-  provider = "prisma-client-js"
-  output   = "./prisma/test-client"
-  db       = "postgresql"
-  url      = env("TEST_DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [ltree]
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  role      Role     @default(STUDENT)
-  courses   Course[]
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  role          Role      @default(STUDENT)
+  password      String? // Optional for OAuth users
+
+  accounts    Account[]
+  sessions    Session[]
   enrollments Enrollment[]
-  progress    UserProgress[]
+  submissions Submission[]
+  skills      UserSkill[]
+
+  // Instructor relations
+  authoredCourses Course[] @relation("InstructorCourses")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
 }
 
-model Enrollment {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  courseId  Int
-  user      User     @relation(fields: [userId], references: [id])
-  course    Course   @relation(fields: [courseId], references: [id])
+model Account {
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
 }
 
 model Course {
-  id          Int      @id @default(autoincrement())
-  title       String
-  instructor  User     @relation(fields: [instructorId], references: [id])
-  instructorId Int
-  modules     Module[]
+  id            String  @id @default(uuid())
+  title         String
+  description   String?
+  instructorId  String  @map("instructor_id")
+  gradingPolicy Json?   @map("grading_policy") // { "cutoffs": ..., "weights": ... }
+
+  instructor User @relation("InstructorCourses", fields: [instructorId], references: [id])
+
+  blocks      CourseBlock[]
   enrollments Enrollment[]
+  skills      Skill[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("courses")
+}
+
+model CourseBlock {
+  id          String   @id @default(uuid())
+  courseId    String   @map("course_id")
+  parentId    String?  @map("parent_id")
+  path        String // Materialized path for ltree (e.g., "root.chapter1.seq2")
+  blockType   String   @map("block_type") // 'chapter', 'video', 'problem', etc.
+  displayName String   @map("display_name")
+  position    Int      @default(0)
+  content     Json     @default("{}") // { "playbackId": "...", "html": "..." }
+  settings    Json     @default("{}") // Visibility, weights, etc.
+  visibleTo   String[] @default(["public"]) @map("visible_to")
+
+  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  parent CourseBlock? @relation("BlockHierarchy", fields: [parentId], references: [id])
+  children CourseBlock[] @relation("BlockHierarchy")
+
+  submissions Submission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([courseId])
+  @@index([path]) // In real DB, this should be a GIST index on ltree
+  @@map("course_blocks")
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  courseId  String   @map("course_id")
+  mode      String   @default("audit") // 'audit', 'verified'
+  isActive  Boolean  @default(true) @map("is_active")
+  grade     Decimal? @db.Decimal(5, 2)
+  role      CourseRole @default(STUDENT)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model Submission {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  blockId       String   @map("block_id")
+  answerData    Json     @map("answer_data")
+  scoreRaw      Decimal  @map("score_raw") @db.Decimal(5, 2)
+  scorePossible Decimal  @map("score_possible") @db.Decimal(5, 2)
+  submittedAt   DateTime @default(now()) @map("submitted_at")
+  isLate        Boolean  @default(false) @map("is_late")
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  block CourseBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@map("submissions")
+}
+
+// LTI Integration
+model LtiInstallation {
+  id           String @id @default(uuid())
+  clientId     String @map("client_id")
+  issuer       String
+  deploymentId String @map("deployment_id")
+  jwksUrl      String @map("jwks_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([clientId, issuer])
+  @@map("lti_installations")
 }
 
 enum Role {
@@ -53,49 +177,74 @@ enum Role {
   ADMIN
 }
 
-enum UnitType {
-  VIDEO
-  PDF
-  LINK
-  SCORM
+enum CourseRole {
+  STUDENT
+  INSTRUCTOR
+  MODERATOR
 }
 
-enum ProgressStatus {
-  LOCKED
-  IN_PROGRESS
-  COMPLETED
+model JobRole {
+  id          String   @id @default(uuid())
+  title       String   @unique
+  description String?
+  skills      Skill[]
+  paths       RolePath[] @relation("TargetRole")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("job_roles")
 }
 
-model Module {
-  id        Int      @id @default(autoincrement())
-  title     String
-  courseId  Int
-  course    Course   @relation(fields: [courseId], references: [id])
-  units     CourseUnit[]
-  order     Int      @default(0)
+model Skill {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  category    String?
+  roles       JobRole[]
+  courses     Course[]
+  userSkills  UserSkill[]
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("skills")
 }
 
-model CourseUnit {
-  id                 Int      @id @default(autoincrement())
-  title              String
-  type               UnitType
-  contentPath        String?  // Path to file on disk or external URL
-  moduleId           Int
-  module             Module   @relation(fields: [moduleId], references: [id])
-  order              Int      @default(0)
-  completionCriteria Json?    // e.g., { "minTime": 300, "pages": 10 }
-  progress           UserProgress[]
+model RolePath {
+  id           String   @id @default(uuid())
+  targetRoleId String   @map("target_role_id")
+  sourceRoleId String?  @map("source_role_id")
+  milestones   Json     @default("[]") // Array of Course IDs or other milestones
+  
+  targetRole   JobRole  @relation("TargetRole", fields: [targetRoleId], references: [id])
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("role_paths")
 }
 
-model UserProgress {
-  id        Int            @id @default(autoincrement())
-  userId    Int
-  unitId    Int
-  user      User           @relation(fields: [userId], references: [id])
-  unit      CourseUnit     @relation(fields: [unitId], references: [id])
-  status    ProgressStatus @default(LOCKED)
-  data      Json?          // e.g., { "lastPosition": 120, "completedPages": [1,2] }
-  updatedAt DateTime       @updatedAt
+model SkillTarget {
+  id          String   @id @default(uuid())
+  skillName   String   @map("skill_name")
+  targetCount Int      @map("target_count")
+  currentCount Int     @default(0) @map("current_count")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  @@unique([userId, unitId])
+  @@map("skill_targets")
+}
+
+model UserSkill {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  skillId   String   @map("skill_id")
+  acquiredAt DateTime @default(now()) @map("acquired_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@map("user_skills")
 }

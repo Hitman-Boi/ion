@@ -1,31 +1,107 @@
-'use client'
+import { signIn } from "@/auth"
+import { Button } from "@/components/ui/button"
+import { AuthError } from "next-auth"
+import { redirect } from "next/navigation"
 
-import { signIn } from 'next-auth/react'
+function MicrosoftIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 21 21"
+        >
+            <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+            <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+            <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+            <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+        </svg>
+    )
+}
 
 export default function LoginPage() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
-            <div className="w-full max-w-md p-8 space-y-8 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl">
+        <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="w-full max-w-md space-y-8 rounded-xl border bg-white p-10 shadow-lg dark:border-gray-800 dark:bg-gray-950">
                 <div className="text-center">
-                    <h2 className="text-3xl font-bold tracking-tight">Welcome Back</h2>
-                    <p className="mt-2 text-sm text-gray-400">
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">Welcome back</h1>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                         Sign in to your account to continue
                     </p>
                 </div>
 
-                <div className="mt-8 space-y-4">
-                    <button
-                        onClick={() => signIn('azure-ad', { callbackUrl: '/dashboard' })}
-                        className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-[#0078D4] hover:bg-[#006cbd] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0078D4] focus:ring-offset-slate-900"
+                <div className="space-y-6">
+                    <form
+                        action={async () => {
+                            "use server"
+                            await signIn("microsoft-entra-id", { redirectTo: "/dashboard" })
+                        }}
                     >
-                        <svg className="w-5 h-5 mr-3" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10.5 0L0 0L0 10.5L10.5 10.5L10.5 0Z" fill="#F25022" />
-                            <path d="M21 0L10.5 0L10.5 10.5L21 10.5L21 0Z" fill="#7FBA00" />
-                            <path d="M10.5 10.5L0 10.5L0 21L10.5 21L10.5 10.5Z" fill="#00A4EF" />
-                            <path d="M21 10.5L10.5 10.5L10.5 21L21 21L21 10.5Z" fill="#FFB900" />
-                        </svg>
-                        Login with Microsoft
-                    </button>
+                        <Button className="w-full h-11 text-base relative" variant="outline" type="submit">
+                            <MicrosoftIcon className="mr-2 h-5 w-5 absolute left-4" />
+                            Sign in with Microsoft
+                        </Button>
+                    </form>
+
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-gray-200 dark:border-gray-800" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-white px-2 text-gray-500 dark:bg-gray-950 dark:text-gray-400">
+                                Or continue with
+                            </span>
+                        </div>
+                    </div>
+
+                    <form
+                        action={async (formData) => {
+                            "use server"
+                            try {
+                                await signIn("credentials", formData)
+                            } catch (error) {
+                                if (error instanceof AuthError) {
+                                    return redirect(`/login?error=${error.type}`)
+                                }
+                                throw error
+                            }
+                        }}
+                        className="space-y-4"
+                    >
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-700 dark:text-gray-300"
+                                htmlFor="email"
+                            >
+                                Email
+                            </label>
+                            <input
+                                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900 dark:border-gray-800"
+                                id="email"
+                                name="email"
+                                placeholder="m@example.com"
+                                required
+                                type="email"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-700 dark:text-gray-300"
+                                htmlFor="password"
+                            >
+                                Password
+                            </label>
+                            <input
+                                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900 dark:border-gray-800"
+                                id="password"
+                                name="password"
+                                required
+                                type="password"
+                            />
+                        </div>
+                        <Button className="w-full h-11 text-base" type="submit">
+                            Sign In
+                        </Button>
+                    </form>
                 </div>
             </div>
         </div>

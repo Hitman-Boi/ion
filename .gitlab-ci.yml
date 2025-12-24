@@ -1,14 +1,23 @@
 stages:
-  - build-test
+  - build
   - docker-build
+  - package
 
 variables:
-  CI_ENV_FILE: ".env.production"
+  CI_ENV_FILE: ".env"
 
-build-test:
-  stage: build-test
-  image: mcr.microsoft.com/playwright:v1.57.0-jammy
+build:
+  stage: build
+  image: node:20-alpine
   script:
+    # Create .env file
+    - cp .env.example .env
+    # Append GitLab CI variables to .env (assuming they are set in GitLab CI/CD settings)
+    - |
+      if [ -f "$CI_ENV_FILE" ]; then
+        echo "" >> $CI_ENV_FILE
+        env | grep -E "^(DATABASE_URL|AUTH_SECRET|AUTH_MICROSOFT_ENTRA_ID_ID|AUTH_MICROSOFT_ENTRA_ID_SECRET|AUTH_MICROSOFT_ENTRA_ID_TENANT_ID)" >> $CI_ENV_FILE || true
+      fi
     - npm ci
     - npx prisma generate
     - npm run build
@@ -17,10 +26,42 @@ build-test:
 
 docker-build:
   stage: docker-build
-  needs: ["build-test"]
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  dependencies:
+    - build
   script:
-    - echo "Using environment file: $CI_ENV_FILE"
-    - docker build -t my-app-image -f Dockerfile .
+    - docker build -t my-app-image:latest .
+    - docker save my-app-image:latest -o my-app-image.tar
   artifacts:
     paths:
-      - my-app-image
+      - my-app-image.tar
+    expire_in: 1 hour
+
+package:
+  stage: package
+  image: alpine:latest
+  dependencies:
+    - build
+    - docker-build
+  script:
+    - apk add --no-cache zip sed
+    # Prepare docker-compose.yml for deployment (use image instead of build)
+    - cp docker-compose.yml docker-compose.deploy.yml
+    - sed -i 's|build: .|image: my-app-image:latest|g' docker-compose.deploy.yml
+    # Rename for the zip
+    - mv docker-compose.deploy.yml docker-compose.yml
+    # Zip artifacts
+    - mkdir -p artifacts
+    - cp my-app-image.tar artifacts/
+    - cp docker-compose.yml artifacts/
+    - cp .env artifacts/
+    - cp scripts/start-app.sh artifacts/
+    - chmod +x artifacts/start-app.sh
+    - cd artifacts && zip -r ../deployment-package.zip .
+  artifacts:
+    paths:
+      - deployment-package.zip
+    expire_in: 1 week
+
