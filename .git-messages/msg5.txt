@@ -1,0 +1,8 @@
+feat: implement course administration and enrollment system
+
+- Add course enrollment management with role-based access
+- Implement public/private course visibility controls
+- Create soft deletion with admin restore capability
+- Build enrollment tracking with detailed role counts
+- Add Badge component for status indicators
+- Enable user search and admin promotion workflows

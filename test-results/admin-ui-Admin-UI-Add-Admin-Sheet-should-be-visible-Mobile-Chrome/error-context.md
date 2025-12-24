@@ -1,0 +1,131 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - region "Notifications alt+T"
+  - generic:
+    - banner:
+      - generic:
+        - generic:
+          - link:
+            - /url: /learner-dashboard
+            - generic: ION Learning Hub
+        - navigation:
+          - link:
+            - /url: /learner-dashboard
+            - text: Learner Dashboard
+          - link:
+            - /url: /instructor-dashboard
+            - text: Instructor Dashboard
+          - link [disabled]:
+            - /url: /admin
+            - text: Admin Dashboard
+          - link:
+            - /url: /career
+            - text: Career
+          - generic:
+            - button: Sign Out
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=2]: Courses
+              - generic:
+                - img
+                - textbox:
+                  - /placeholder: Search courses...
+            - generic:
+              - generic:
+                - link:
+                  - /url: /admin/courses/b6b4aa79-3140-405a-a55d-4195deb47522
+                  - generic:
+                    - generic:
+                      - generic:
+                        - heading [level=3]: Advanced React
+                        - generic: Private
+                      - generic:
+                        - generic: 1 Students
+                - link:
+                  - /url: /admin/courses/e4d48bd4-2670-4780-b0c0-3a16c173b800
+                  - generic:
+                    - generic:
+                      - generic:
+                        - heading [level=3]: Advanced React
+                        - generic: Private
+                      - generic:
+                        - generic: 1 Students
+                - link:
+                  - /url: /admin/courses/a45dbc92-d56b-4360-a68c-379bc652fe11
+                  - generic:
+                    - generic:
+                      - generic:
+                        - heading [level=3]: Advanced React
+                        - generic: Private
+                      - generic:
+                        - generic: 1 Students
+                - link:
+                  - /url: /admin/courses/61b9a247-9385-4878-a4c9-b062915d9e59
+                  - generic:
+                    - generic:
+                      - generic:
+                        - heading [level=3]: Advanced React
+                        - generic: Private
+                      - generic:
+                        - generic: 1 Students
+                - link:
+                  - /url: /admin/courses/d99ec884-9322-4e46-be59-56055e4c820d
+                  - generic:
+                    - generic:
+                      - generic:
+                        - heading [level=3]: Advanced React
+                        - generic: Private
+                      - generic:
+                        - generic: 1 Students
+        - generic:
+          - button:
+            - img
+            - text: Create Course
+          - button [expanded]:
+            - img
+            - text: Manage Admins
+          - link:
+            - /url: /admin/roles
+            - img
+            - text: Manage Learning Paths & Roles
+          - button:
+            - img
+            - text: Manage Skills
+  - alert
+  - dialog "Manage Administrators" [ref=e2]:
+    - generic [ref=e3]:
+      - heading "Manage Administrators" [level=2] [ref=e4]
+      - paragraph [ref=e5]: Add or remove administrators for the platform.
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "Add New Admin" [level=3] [ref=e8]:
+          - img [ref=e9]
+          - text: Add New Admin
+        - generic [ref=e13]:
+          - generic [ref=e14]: Select User to Promote
+          - generic [ref=e15]:
+            - combobox "Select User to Promote" [expanded] [ref=e16] [cursor=pointer]:
+              - text: Select user...
+              - img
+            - button "Add" [disabled]
+      - generic [ref=e17]:
+        - heading "Current Admins (1)" [level=3] [ref=e18]
+        - generic [ref=e24]:
+          - paragraph [ref=e25]: Admin User
+          - paragraph [ref=e26]: admin@example.com
+    - button "Close" [ref=e27] [cursor=pointer]:
+      - img [ref=e28]
+      - generic [ref=e31]: Close
+  - dialog [ref=e32]:
+    - generic [ref=e33]:
+      - generic [ref=e35]:
+        - img [ref=e36]
+        - combobox [expanded] [active] [ref=e39]: test
+      - listbox "Suggestions" [ref=e40]:
+        - generic [ref=e41]: No user found.
+```

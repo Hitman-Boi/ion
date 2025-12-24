@@ -1,0 +1,6 @@
+feat: initial Next.js project setup with Prisma and ESLint
+
+- Create Next.js application with TypeScript
+- Configure Prisma ORM with PostgreSQL schema
+- Set up ESLint for code quality
+- Add comprehensive .gitignore for build artifacts and secrets

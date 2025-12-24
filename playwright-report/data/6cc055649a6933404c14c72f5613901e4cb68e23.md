@@ -1,0 +1,138 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - region "Notifications alt+T"
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "ION Learning Hub" [ref=e6] [cursor=pointer]:
+          - /url: /learner-dashboard
+          - generic [ref=e7]: ION Learning Hub
+        - navigation [ref=e8]:
+          - link "Learner Dashboard" [disabled]:
+            - /url: /learner-dashboard
+          - link "Career" [ref=e9] [cursor=pointer]:
+            - /url: /career
+          - button "Sign Out" [ref=e11] [cursor=pointer]
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - heading "Dashboard" [level=1] [ref=e16]
+        - paragraph [ref=e17]: Manage your career goals and track your progress.
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - heading "My Courses" [level=2] [ref=e21]:
+              - img [ref=e22]
+              - text: My Courses
+            - link "Explore More Courses" [ref=e25] [cursor=pointer]:
+              - /url: /courses
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e28]:
+                - heading "Advanced React" [level=3] [ref=e30]
+                - paragraph [ref=e31]: Deep dive into React hooks, patterns, and performance.
+              - generic [ref=e32]:
+                - generic [ref=e33]:
+                  - generic [ref=e34]:
+                    - generic [ref=e35]: 0% Complete
+                    - generic [ref=e36]: 0/2 Steps
+                  - progressbar [ref=e37]
+                - generic [ref=e39]:
+                  - img [ref=e40]
+                  - generic [ref=e43]: 2 lessons remaining
+              - link "Start Course" [ref=e45] [cursor=pointer]:
+                - /url: /courses/b6b4aa79-3140-405a-a55d-4195deb47522
+            - generic [ref=e46]:
+              - generic [ref=e47]:
+                - heading "Advanced React" [level=3] [ref=e49]
+                - paragraph [ref=e50]: Deep dive into React hooks, patterns, and performance.
+              - generic [ref=e51]:
+                - generic [ref=e52]:
+                  - generic [ref=e53]:
+                    - generic [ref=e54]: 0% Complete
+                    - generic [ref=e55]: 0/2 Steps
+                  - progressbar [ref=e56]
+                - generic [ref=e58]:
+                  - img [ref=e59]
+                  - generic [ref=e62]: 2 lessons remaining
+              - link "Start Course" [ref=e64] [cursor=pointer]:
+                - /url: /courses/e4d48bd4-2670-4780-b0c0-3a16c173b800
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - heading "Advanced React" [level=3] [ref=e68]
+                - paragraph [ref=e69]: Deep dive into React hooks, patterns, and performance.
+              - generic [ref=e70]:
+                - generic [ref=e71]:
+                  - generic [ref=e72]:
+                    - generic [ref=e73]: 0% Complete
+                    - generic [ref=e74]: 0/2 Steps
+                  - progressbar [ref=e75]
+                - generic [ref=e77]:
+                  - img [ref=e78]
+                  - generic [ref=e81]: 2 lessons remaining
+              - link "Start Course" [ref=e83] [cursor=pointer]:
+                - /url: /courses/a45dbc92-d56b-4360-a68c-379bc652fe11
+            - generic [ref=e84]:
+              - generic [ref=e85]:
+                - heading "Advanced React" [level=3] [ref=e87]
+                - paragraph [ref=e88]: Deep dive into React hooks, patterns, and performance.
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - generic [ref=e91]:
+                    - generic [ref=e92]: 0% Complete
+                    - generic [ref=e93]: 0/2 Steps
+                  - progressbar [ref=e94]
+                - generic [ref=e96]:
+                  - img [ref=e97]
+                  - generic [ref=e100]: 2 lessons remaining
+              - link "Start Course" [ref=e102] [cursor=pointer]:
+                - /url: /courses/61b9a247-9385-4878-a4c9-b062915d9e59
+            - generic [ref=e103]:
+              - generic [ref=e104]:
+                - heading "Advanced React" [level=3] [ref=e106]
+                - paragraph [ref=e107]: Deep dive into React hooks, patterns, and performance.
+              - generic [ref=e108]:
+                - generic [ref=e109]:
+                  - generic [ref=e110]:
+                    - generic [ref=e111]: 0% Complete
+                    - generic [ref=e112]: 0/2 Steps
+                  - progressbar [ref=e113]
+                - generic [ref=e115]:
+                  - img [ref=e116]
+                  - generic [ref=e119]: 2 lessons remaining
+              - link "Start Course" [ref=e121] [cursor=pointer]:
+                - /url: /courses/d99ec884-9322-4e46-be59-56055e4c820d
+        - complementary [ref=e122]:
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - heading "My Career Paths" [level=2] [ref=e125]:
+                - img [ref=e126]
+                - text: My Career Paths
+              - link "Explore More Paths" [ref=e129] [cursor=pointer]:
+                - /url: /learning-paths
+            - generic [ref=e132]:
+              - button [ref=e134] [cursor=pointer]:
+                - img
+              - generic [ref=e135]:
+                - generic [ref=e136]:
+                  - img [ref=e137]
+                  - heading "Frontend Mastery" [level=3] [ref=e140]
+                - paragraph [ref=e141]: The ultimate guide to becoming a Senior Frontend Engineer.
+              - generic [ref=e142]:
+                - generic [ref=e143]:
+                  - generic [ref=e144]:
+                    - generic [ref=e145]: Progress
+                    - generic [ref=e146]: 0%
+                  - progressbar [ref=e147]
+                - generic [ref=e149]:
+                  - heading "Skill Gap Analysis" [level=4] [ref=e150]
+                  - generic [ref=e152]:
+                    - generic [ref=e153]:
+                      - img [ref=e154]
+                      - generic [ref=e158]: "To Learn:"
+                    - generic [ref=e160]: React.js
+              - link "View Path" [ref=e162] [cursor=pointer]:
+                - /url: /learning-paths/f0185177-9bde-4367-afb1-820638ad4fbe
+  - alert [ref=e163]
+```

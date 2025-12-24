@@ -1,0 +1,63 @@
+version: '3.8'
+
+# Local development docker-compose
+# Only includes dependencies (PostgreSQL, Redis, PostHog)
+# The Next.js app runs locally via npm run dev
+
+services:
+  db:
+    image: postgres:15
+    container_name: learning-hub-localdev-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: learning_hub
+    volumes:
+      - learning_hub_localdev_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "learning_hub"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - learning_hub_localdev_network
+
+  redis:
+    image: redis:6-alpine
+    container_name: learning-hub-localdev-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    networks:
+      - learning_hub_localdev_network
+
+  posthog:
+    image: posthog/posthog:release-1.43.0
+    container_name: learning-hub-localdev-posthog
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/posthog
+      - REDIS_URL=redis://redis:6379/
+      - SECRET_KEY=localdev-posthog-secret-not-for-production
+      - SITE_URL=http://localhost:8000
+      - DISABLE_SECURE_SSL_REDIRECT=true
+      - IS_BEHIND_PROXY=false
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - '8000:8000'
+    networks:
+      - learning_hub_localdev_network
+
+volumes:
+  learning_hub_localdev_data:
+
+networks:
+  learning_hub_localdev_network:
+    driver: bridge

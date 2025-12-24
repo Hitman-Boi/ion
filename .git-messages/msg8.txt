@@ -1,0 +1,9 @@
+feat: add content quality engine, mobile UX, and refinements
+
+- Implement mobile-responsive layouts across all pages
+- Create content health scoring system with flagging
+- Add learning path subscription functionality
+- Set up local development environment with Docker Compose
+- Rename chapters to modules for consistency
+- Enhance seed data and documentation
+- Refine login page and Prisma schema

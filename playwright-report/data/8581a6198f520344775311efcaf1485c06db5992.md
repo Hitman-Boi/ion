@@ -1,0 +1,45 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - region "Notifications alt+T"
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "ION Learning Hub" [ref=e6] [cursor=pointer]:
+          - /url: /learner-dashboard
+          - generic [ref=e7]: ION Learning Hub
+        - button "Open menu" [ref=e8] [cursor=pointer]:
+          - img
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - heading "Dashboard" [level=1] [ref=e13]
+        - paragraph [ref=e14]: Manage your career goals and track your progress.
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - heading "My Courses" [level=2] [ref=e18]:
+              - img [ref=e19]
+              - text: My Courses
+            - link "Explore More Courses" [ref=e21] [cursor=pointer]:
+              - /url: /courses
+          - generic [ref=e22]:
+            - img [ref=e24]
+            - heading "No active enrollments" [level=3] [ref=e26]
+            - link "Browse Courses" [ref=e27] [cursor=pointer]:
+              - /url: /courses
+        - complementary [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - heading "My Career Paths" [level=2] [ref=e31]:
+                - img [ref=e32]
+                - text: My Career Paths
+              - link "Explore More Paths" [ref=e35] [cursor=pointer]:
+                - /url: /learning-paths
+            - generic [ref=e36]:
+              - heading "Start Your Journey" [level=2] [ref=e37]
+              - paragraph [ref=e38]: Select a career path to get personalized learning recommendations and skill tracking.
+              - link "Browse Career Paths" [ref=e39] [cursor=pointer]:
+                - /url: /learning-paths
+  - alert [ref=e40]
+```

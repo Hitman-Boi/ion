@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./node_modules/.prisma/client"
+}
+
+generator testClient {
+  provider = "prisma-client-js"
+  output   = "./prisma/test-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Test database configuration
+generator test {
+  provider = "prisma-client-js"
+  output   = "./prisma/test-client"
+  db       = "postgresql"
+  url      = env("TEST_DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role     @default(STUDENT)
+  courses   Course[]
+  enrollments Enrollment[]
+}
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  title       String
+  instructor  User     @relation(fields: [instructorId], references: [id])
+  instructorId Int
+  modules     Module[]
+  enrollments Enrollment[]
+}
+
+model Module {
+  id        Int      @id @default(autoincrement())
+  title     String
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id])
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  user      User     @relation(fields: [userId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}

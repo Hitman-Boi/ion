@@ -1,0 +1,93 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    build:
+      env:
+        PRISMA_DATABASE_URL: ${{ secrets.PrismaDatabaseUrl }}
+        DOCKERHUB_USERNAME: ${{ secrets.DockerHubUsername }}
+        DOCKERHUB_TOKEN: ${{ secrets.DockerHubToken }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AwsAccessKeyId }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AwsSecretAccessKey }}
+        TF_VAR_env: ${{ secrets.TfVarEnv }}
+        TF_VAR_region: ${{ secrets.TfVarRegion }}
+      runs-on: ubuntu-latest
+      steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+          - name: Setup Node.js
+            uses: actions/setup-node@v4
+            with:
+              node-version: 18
+          - name: Install dependencies
+            run: npm install
+          - name: Prisma Migrate
+            run: npx prisma migrate deploy
+          - name: Build Docker Image
+            run: docker build -t learning-hub-image .
+          - name: Push Docker Image
+            run: docker push learning-hub-image
+    test:
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: 18
+            - name: Install dependencies
+              run: npm install
+            - name: Run Unit Tests
+              run: npm run test
+            - name: Run E2E Tests
+              run: npm run test:e2e
+    deploy:
+      env:
+        PRISMA_DATABASE_URL: ${{ secrets.PrismaDatabaseUrl }}
+        DOCKERHUB_USERNAME: ${{ secrets.DockerHubUsername }}
+        DOCKERHUB_TOKEN: ${{ secrets.DockerHubToken }}
+      runs-on: ubuntu-latest
+      needs: test
+      steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+          - name: Setup Node.js
+            uses: actions/setup-node@v4
+            with:
+              node-version: 18
+          - name: Install dependencies
+            run: npm install
+          - name: Prisma Migrate
+            run: npx prisma migrate deploy
+          - name: ECS Deployment
+            run: |
+              aws ecs update-service --cluster learning-hub-cluster --service learning-hub-service --task-definition learning-hub-task:1
+          - name: Post-deploy Validation
+            run: |
+              curl -I https://your-deployed-app.com
+    drift-check:
+      env:
+        PRISMA_DATABASE_URL: ${{ secrets.PrismaDatabaseUrl }}
+        DOCKERHUB_USERNAME: ${{ secrets.DockerHubUsername }}
+        DOCKERHUB_TOKEN: ${{ secrets.DockerHubToken }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AwsAccessKeyId }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AwsSecretAccessKey }}
+        TF_VAR_env: ${{ secrets.TfVarEnv }}
+        TF_VAR_region: ${{ secrets.TfVarRegion }}
+      runs-on: ubuntu-latest
+      needs: deploy
+      steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+          - name: Infrastructure Drift Check
+            run: |
+              terraform plan -out=tfplan -var-file=terraform.tfvars

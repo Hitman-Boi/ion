@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'learning_hub'
+    metrics_path: /api/v1/metrics
+    static_configs:
+      - targets: ['learning_hub:3000']
+
+  - job_name: 'postgres'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['db:9187']
+
+  - job_name: 'redis'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['redis:9121']

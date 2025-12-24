@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: learning-hub-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-learning_hub}
+    volumes:
+      - learning_hub_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}", "-d", "${POSTGRES_DB:-learning_hub}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - learning_hub_network
+
+  app:
+    build: .
+    container_name: learning-hub-app
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env.production
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_NAME: ${POSTGRES_DB:-learning_hub}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - learning_hub_network
+
+  monitoring:
+    image: prom/prometheus
+    container_name: learning-hub-monitoring
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - app
+      - db
+    networks:
+      - learning_hub_network
+
+volumes:
+  learning_hub_data:
+
+networks:
+  learning_hub_network:
+    driver: bridge

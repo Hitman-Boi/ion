@@ -1,0 +1,8 @@
+feat: build dashboard and admin management system
+
+- Create learner dashboard with course progress
+- Implement admin page for user and role management
+- Add course creation and management functionality
+- Build reusable sheet components for forms
+- Establish dark theme with CSS variable color system
+- Add tailwindcss-animate for UI transitions

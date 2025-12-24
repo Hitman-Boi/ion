@@ -1,0 +1,8 @@
+feat: implement skills-based learning with progress tracking
+
+- Create skills-based architecture with dynamic learning paths
+- Add course and role skill management interfaces
+- Restructure admin dashboard with grid layout
+- Implement atomic progress tracking for video, PDF, and quiz
+- Integrate PostHog analytics for usage insights
+- Build enhanced course browsing experience
