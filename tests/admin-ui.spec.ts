@@ -22,7 +22,7 @@ test.describe('Admin UI', () => {
 
     test('Add Admin Sheet should be visible', async ({ page }) => {
         page.on('console', msg => console.log(`BROWSER LOG: ${msg.text()}`));
-        await page.goto('/admin', { timeout: 60000 });
+        await page.goto('/admin-dashboard', { timeout: 60000 });
 
         // Click "Manage Admins" button
         await page.getByRole('button', { name: 'Manage Admins' }).click();
@@ -51,7 +51,7 @@ test.describe('Admin UI', () => {
     });
 
     test('Create Course Sheet should be visible', async ({ page }) => {
-        await page.goto('/admin');
+        await page.goto('/admin-dashboard');
 
         // Click "Create Course" button
         await page.getByRole('button', { name: 'Create Course' }).click();

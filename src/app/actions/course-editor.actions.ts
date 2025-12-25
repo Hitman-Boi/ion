@@ -165,7 +165,7 @@ export async function updateTopic(topicId: string, courseId: string, title: stri
 export async function createTopicResource(
     topicId: string,
     type: ResourceType,
-    data: { title?: string, contentUrl?: string, quizData?: any },
+    data: { contentUrl?: string, quizData?: any },
     courseId: string
 ) {
     await checkAuth()
@@ -181,7 +181,6 @@ export async function createTopicResource(
         data: {
             topicId,
             type,
-            title: data.title || (type === "VIDEO" ? "Video" : type === "PDF" ? "PDF" : "Quiz"),
             contentUrl: data.contentUrl,
             quizData: data.quizData,
             sortOrder: newOrder,
@@ -194,7 +193,7 @@ export async function createTopicResource(
 
 export async function updateTopicResource(
     resourceId: string,
-    data: { title?: string, contentUrl?: string, quizData?: any },
+    data: { contentUrl?: string, quizData?: any },
     courseId: string
 ) {
     await checkAuth()
@@ -202,7 +201,6 @@ export async function updateTopicResource(
     await db.topicResource.update({
         where: { id: resourceId },
         data: {
-            title: data.title,
             contentUrl: data.contentUrl,
             quizData: data.quizData,
         }
@@ -273,5 +271,5 @@ export async function updateCourseSkills(courseId: string, skillIds: string[]) {
         }
     })
     revalidatePath(`/courses/${courseId}/studio`)
-    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }

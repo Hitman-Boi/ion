@@ -14,7 +14,7 @@ import {
 import { User } from "next-auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, User as UserIcon, Settings, LogOut } from "lucide-react";
+import { Menu, User as UserIcon, Settings, LogOut, GraduationCap, Presentation, Shield, LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 interface HeaderProps {
@@ -35,7 +35,20 @@ export function Header({ user, isInstructor }: HeaderProps) {
         return pathname.startsWith(path);
     }
 
-    const NavButton = ({ href, label, onClick, className = "" }: { href: string, label: string, onClick?: () => void, className?: string }) => {
+    // Desktop NavButton - shows icon + text
+    const NavButton = ({
+        href,
+        label,
+        icon: Icon,
+        onClick,
+        className = ""
+    }: {
+        href: string,
+        label: string,
+        icon?: LucideIcon,
+        onClick?: () => void,
+        className?: string
+    }) => {
         const isActive = isPathActive(href);
         return (
             <Button
@@ -46,7 +59,36 @@ export function Header({ user, isInstructor }: HeaderProps) {
                 onClick={onClick}
             >
                 <Link href={href} aria-disabled={isActive} tabIndex={isActive ? -1 : undefined}>
+                    {Icon && <Icon className="h-4 w-4 mr-1.5" />}
                     {label}
+                </Link>
+            </Button>
+        )
+    }
+
+    // Tablet NavButton - shows icon only (or icon + text on wider tablets)
+    const TabletNavButton = ({
+        href,
+        label,
+        icon: Icon
+    }: {
+        href: string,
+        label: string,
+        icon: LucideIcon
+    }) => {
+        const isActive = isPathActive(href);
+        return (
+            <Button
+                variant={isActive ? "secondary" : "ghost"}
+                asChild
+                size="icon"
+                className={`${isActive ? "bg-accent text-accent-foreground pointer-events-none opacity-100" : ""}`}
+                aria-disabled={isActive}
+                title={label}
+            >
+                <Link href={href} aria-disabled={isActive} tabIndex={isActive ? -1 : undefined}>
+                    <Icon className="h-4 w-4" />
+                    <span className="sr-only">{label}</span>
                 </Link>
             </Button>
         )
@@ -54,14 +96,29 @@ export function Header({ user, isInstructor }: HeaderProps) {
 
     const desktopNavigationItems = (
         <>
-            <NavButton href="/learner-dashboard" label="Learner Dashboard" />
+            <NavButton href="/learner-dashboard" label="Learner Dashboard" icon={GraduationCap} />
 
             {isInstructor && (
-                <NavButton href="/instructor-dashboard" label="Instructor Dashboard" />
+                <NavButton href="/instructor-dashboard" label="Instructor Dashboard" icon={Presentation} />
             )}
 
             {isAdmin && (
-                <NavButton href="/admin" label="Admin Dashboard" />
+                <NavButton href="/admin-dashboard" label="Admin Dashboard" icon={Shield} />
+            )}
+
+        </>
+    )
+
+    const tabletNavigationItems = (
+        <>
+            <TabletNavButton href="/learner-dashboard" label="Learner Dashboard" icon={GraduationCap} />
+
+            {isInstructor && (
+                <TabletNavButton href="/instructor-dashboard" label="Instructor Dashboard" icon={Presentation} />
+            )}
+
+            {isAdmin && (
+                <TabletNavButton href="/admin-dashboard" label="Admin Dashboard" icon={Shield} />
             )}
 
         </>
@@ -69,14 +126,14 @@ export function Header({ user, isInstructor }: HeaderProps) {
 
     const mobileNavigationItems = (
         <>
-            <NavButton href="/learner-dashboard" label="Learner Dashboard" onClick={() => setMobileMenuOpen(false)} className="w-full justify-start" />
+            <NavButton href="/learner-dashboard" label="Learner Dashboard" icon={GraduationCap} onClick={() => setMobileMenuOpen(false)} className="w-full justify-start" />
 
             {isInstructor && (
-                <NavButton href="/instructor-dashboard" label="Instructor Dashboard" onClick={() => setMobileMenuOpen(false)} className="w-full justify-start" />
+                <NavButton href="/instructor-dashboard" label="Instructor Dashboard" icon={Presentation} onClick={() => setMobileMenuOpen(false)} className="w-full justify-start" />
             )}
 
             {isAdmin && (
-                <NavButton href="/admin" label="Admin Dashboard" onClick={() => setMobileMenuOpen(false)} className="w-full justify-start" />
+                <NavButton href="/admin-dashboard" label="Admin Dashboard" icon={Shield} onClick={() => setMobileMenuOpen(false)} className="w-full justify-start" />
             )}
 
         </>
@@ -87,21 +144,26 @@ export function Header({ user, isInstructor }: HeaderProps) {
             <div className="container flex h-16 items-center justify-between px-4 md:px-6">
                 {/* Left Side: App Name + Navigation */}
                 <div className="flex items-center gap-4">
-                    <Link className="flex items-center gap-2 font-semibold text-lg whitespace-nowrap" href="/learner-dashboard">
+                    <div className="flex items-center gap-2 font-semibold text-lg whitespace-nowrap">
                         <span>ION Learning Hub</span>
-                    </Link>
+                    </div>
 
-                    {/* Desktop Navigation - Hidden on small/medium screens */}
-                    <nav className="hidden lg:flex items-center gap-2">
+                    {/* Tablet Navigation - Icons only, visible on md screens */}
+                    <nav className="hidden md:flex lg:hidden items-center gap-1 ml-4">
+                        {tabletNavigationItems}
+                    </nav>
+
+                    {/* Desktop Navigation - Icons + Text, visible on lg+ screens */}
+                    <nav className="hidden lg:flex items-center gap-2 ml-4">
                         {desktopNavigationItems}
                     </nav>
                 </div>
 
                 {/* Right Side: User Menu */}
                 <div className="flex items-center gap-2">
-                    {/* Mobile Menu Button - Visible on small/medium screens */}
+                    {/* Mobile Menu Button - Only visible on small screens (below md) */}
                     <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                        <SheetTrigger asChild className="lg:hidden">
+                        <SheetTrigger asChild className="md:hidden">
                             <Button variant="ghost" size="icon" aria-label="Open menu">
                                 <Menu className="h-6 w-6" />
                             </Button>
@@ -170,13 +232,12 @@ export function Header({ user, isInstructor }: HeaderProps) {
                                 </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <form action={logout} className="w-full">
-                                    <button type="submit" className="flex w-full items-center cursor-pointer">
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        Sign Out
-                                    </button>
-                                </form>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() => logout()}
+                            >
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Sign Out
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

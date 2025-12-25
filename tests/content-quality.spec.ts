@@ -16,7 +16,7 @@ test.describe("Content Health Score Calculation", () => {
     });
 
     test("should display health score on course cards", async ({ page }) => {
-        await page.goto("/admin");
+        await page.goto("/admin-dashboard");
 
         // Health score badge should be visible on course cards
         const courseCard = page.locator('[data-testid="course-card"]').first();
@@ -36,14 +36,14 @@ test.describe("Content Health Score Calculation", () => {
 
         // Navigate to a course and verify the calculation matches expected values
         // For E2E, we validate through the UI that health scores update correctly
-        await page.goto("/admin");
+        await page.goto("/admin-dashboard");
 
         // Verify page loads without errors
         await expect(page).not.toHaveTitle(/Error/);
     });
 
     test("freshness factor should decay over time", async ({ page }) => {
-        await page.goto("/admin");
+        await page.goto("/admin-dashboard");
 
         // Look for courses with "Needs Review" or "Review Soon" badges
         const needsReviewBadge = page.locator('text=Needs Review');
@@ -51,18 +51,18 @@ test.describe("Content Health Score Calculation", () => {
 
         // These badges appear on stale/expiring content
         // Verify the page loads correctly even if no stale content exists
-        await expect(page).toHaveURL(/\/admin/);
+        await expect(page).toHaveURL(/\/admin-dashboard/);
     });
 
     test("bug reports should reduce health score by 5 points each", async ({ page }) => {
         // This test validates that open bug reports penalize the health score
-        await page.goto("/admin");
+        await page.goto("/admin-dashboard");
 
         // Look for courses with content flags
         const flagIndicator = page.locator('[data-testid="flag-count"], .flag-indicator');
 
         // Verify admin page loads
-        await expect(page).toHaveURL(/\/admin/);
+        await expect(page).toHaveURL(/\/admin-dashboard/);
     });
 });
 

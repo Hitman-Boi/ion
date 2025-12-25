@@ -13,7 +13,7 @@ test.describe('Admin Roles & Paths Page', () => {
 
 
         // --- Go to Roles Page ---
-        await page.goto('/admin/roles');
+        await page.goto('/admin-dashboard/roles');
         await expect(page.getByRole('heading', { name: 'Job Roles', exact: true })).toBeVisible();
         await expect(page.getByRole('heading', { name: 'Learning Paths', exact: true })).toBeVisible();
 

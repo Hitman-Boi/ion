@@ -53,7 +53,7 @@ export default async function AdminPage() {
                     <CreateCourseButton className="justify-center md:justify-start" />
                     <ManageAdminsSheet initialAdmins={adminUsers} className="justify-center md:justify-start" />
                     <Button asChild variant="outline" className="justify-center md:justify-start">
-                        <Link href="/admin/roles">
+                        <Link href="/admin-dashboard/roles">
                             <Waypoints className="mr-2 h-4 w-4" />
                             Manage Learning Paths & Roles
                         </Link>

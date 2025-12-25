@@ -21,7 +21,7 @@ export async function createLearningPath(data: { title: string; description?: st
         },
     });
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
     return path;
 }
 
@@ -40,7 +40,7 @@ export async function updateLearningPath(id: string, data: { title: string; desc
         },
     });
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
     return path;
 }
 
@@ -64,7 +64,7 @@ export async function addLearningPathItem(pathId: string, data: { courseId?: str
         }
     });
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
     return item;
 }
 
@@ -83,7 +83,7 @@ export async function updateLearningPathOrder(pathId: string, items: { id: strin
         )
     );
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
 }
 
 export async function deleteLearningPathItem(id: string) {
@@ -96,7 +96,7 @@ export async function deleteLearningPathItem(id: string) {
         where: { id }
     });
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
 }
 
 export async function getLearningPaths() {

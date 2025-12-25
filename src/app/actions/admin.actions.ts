@@ -22,7 +22,7 @@ export async function updateUserGlobalRole(userId: string, role: Role) {
         data: { role },
     })
 
-    revalidatePath("/admin")
+    revalidatePath("/admin-dashboard")
 }
 
 export async function updateCourseEnrollmentRole(courseId: string, userId: string, role: CourseRole) {
@@ -38,8 +38,8 @@ export async function updateCourseEnrollmentRole(courseId: string, userId: strin
         data: { role },
     })
 
-    revalidatePath(`/admin`)
-    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath(`/admin-dashboard`)
+    revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }
 
 export async function enrollUserInCourse(courseId: string, userId: string, role: CourseRole = "STUDENT") {
@@ -59,8 +59,8 @@ export async function enrollUserInCourse(courseId: string, userId: string, role:
             role
         }
     })
-    revalidatePath(`/admin`)
-    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath(`/admin-dashboard`)
+    revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }
 
 export async function createCourse(title: string, skillIds: string[] = []) {
@@ -108,7 +108,7 @@ export async function promoteToAdmin(email: string) {
         data: { role: "ADMIN" },
     })
 
-    revalidatePath("/admin")
+    revalidatePath("/admin-dashboard")
 }
 
 export async function getNonAdminUsers() {
@@ -135,7 +135,7 @@ export async function toggleCourseVisibility(courseId: string, isPublic: boolean
         where: { id: courseId },
         data: { isPublic }
     })
-    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }
 
 export async function getUnenrolledUsers(courseId: string) {
@@ -172,7 +172,7 @@ export async function removeUserFromCourse(courseId: string, userId: string) {
         },
     })
 
-    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }
 
 export async function deleteCourse(courseId: string) {
@@ -181,8 +181,8 @@ export async function deleteCourse(courseId: string) {
         where: { id: courseId },
         data: { deletedAt: new Date() }
     })
-    revalidatePath("/admin")
-    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath("/admin-dashboard")
+    revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }
 
 export async function restoreCourse(courseId: string) {
@@ -191,7 +191,7 @@ export async function restoreCourse(courseId: string) {
         where: { id: courseId },
         data: { deletedAt: null }
     })
-    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }
 
 export async function updateCourseSkills(courseId: string, skillIds: string[]) {
@@ -204,5 +204,5 @@ export async function updateCourseSkills(courseId: string, skillIds: string[]) {
             }
         }
     })
-    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }

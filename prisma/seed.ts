@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  const password = await bcrypt.hash('admin', 10)
+  const adminPassword = await bcrypt.hash('admin', 10)
   const testPassword = await bcrypt.hash('test', 10)
   const instructorPassword = await bcrypt.hash('instructor', 10)
 
@@ -12,20 +12,23 @@ async function main() {
   const admin = await prisma.user.upsert({
     where: { email: 'admin@learning-hub.iongroup.com' },
     update: {
-      password,
+      password: adminPassword,
       role: 'ADMIN',
     },
     create: {
       email: 'admin@learning-hub.iongroup.com',
       name: 'Admin User',
-      password,
+      password: adminPassword,
       role: 'ADMIN',
     },
   })
 
   const testUser = await prisma.user.upsert({
     where: { email: 'test@learning-hub.iongroup.com' },
-    update: {},
+    update: {
+      password: testPassword,
+      role: 'STUDENT',
+    },
     create: {
       email: 'test@learning-hub.iongroup.com',
       name: 'Test User',
@@ -102,7 +105,6 @@ async function main() {
                     resources: {
                       create: [
                         {
-                          title: 'Welcome Video',
                           type: 'VIDEO',
                           contentUrl: 'https://example.com/video.mp4',
                           sortOrder: 1
@@ -116,7 +118,6 @@ async function main() {
                     resources: {
                       create: [
                         {
-                          title: 'Setup Guide',
                           type: 'PDF',
                           contentUrl: 'https://example.com/guide.pdf',
                           sortOrder: 1
@@ -141,7 +142,9 @@ async function main() {
         courseId: advancedReactCourse.id,
       },
     },
-    update: {},
+    update: {
+      role: 'STUDENT',
+    },
     create: {
       userId: testUser.id,
       courseId: advancedReactCourse.id,

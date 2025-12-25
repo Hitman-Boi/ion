@@ -7,8 +7,18 @@ import { revalidatePath } from "next/cache";
 export async function createSkill(data: { name: string; category?: string }) {
     const session = await auth();
     // @ts-ignore
-    if (!session || session.user.role !== "ADMIN") {
+    const userRole = session?.user?.role;
+    if (!session || (userRole !== "ADMIN" && userRole !== "INSTRUCTOR")) {
         throw new Error("Unauthorized");
+    }
+
+    // Check if skill already exists (case-insensitive)
+    const existingSkill = await prisma.skill.findFirst({
+        where: { name: { equals: data.name, mode: "insensitive" } },
+    });
+
+    if (existingSkill) {
+        return existingSkill;
     }
 
     const skill = await prisma.skill.create({
@@ -18,8 +28,21 @@ export async function createSkill(data: { name: string; category?: string }) {
         },
     });
 
-    revalidatePath("/admin/skills");
+    revalidatePath("/admin-dashboard/skills");
     return skill;
+}
+
+export async function searchSkills(query: string) {
+    if (!query || query.trim().length === 0) {
+        return await prisma.skill.findMany({ orderBy: { name: "asc" } });
+    }
+
+    return await prisma.skill.findMany({
+        where: {
+            name: { contains: query, mode: "insensitive" },
+        },
+        orderBy: { name: "asc" },
+    });
 }
 
 export async function createSkillTarget(data: { skillName: string; targetCount: number }) {
@@ -36,7 +59,7 @@ export async function createSkillTarget(data: { skillName: string; targetCount: 
         },
     });
 
-    revalidatePath("/admin/skills");
+    revalidatePath("/admin-dashboard/skills");
     return target;
 }
 

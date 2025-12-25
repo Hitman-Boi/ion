@@ -15,6 +15,7 @@ export function CourseVisibilityToggle({ courseId, isPublic }: CourseVisibilityT
             await toggleCourseVisibility(courseId, !isPublic)
         }}>
             <Button
+                size="sm"
                 variant={isPublic ? "outline" : "default"}
                 className="gap-2"
             >

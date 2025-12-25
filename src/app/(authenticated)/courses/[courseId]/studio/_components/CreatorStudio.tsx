@@ -1,6 +1,6 @@
 'use client'
 
-import { createModule, createTopic, deleteModule, deleteTopic, reorderModules, reorderTopics } from '@/app/actions/course-editor.actions'
+import { createModule, createTopic, createTopicResource, deleteModule, deleteTopic, deleteTopicResource, reorderModules, reorderTopics } from '@/app/actions/course-editor.actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,77 +10,16 @@ import {
     SheetTitle
 } from "@/components/ui/sheet"
 import { closestCenter, DndContext, DragEndEvent, DragStartEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { Eye, FileText, GripVertical, HelpCircle, Plus, Trash2, Video } from 'lucide-react'
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { TopicEditorDrawer } from './TopicEditorDrawer'
+import { VideoEditorDrawer } from './VideoEditorDrawer'
+import { ReadingEditorDrawer } from './ReadingEditorDrawer'
+import { QuizEditorDrawer } from './QuizEditorDrawer'
+import { SortableModule } from './SortableModule'
+import { SortableTopic } from './SortableTopic'
 import { CourseSkillsManager } from '@/components/course/course-skills-manager'
-
-// --- SORTABLE MODULE ---
-function SortableModule({ id, children }: { id: string, children: React.ReactNode }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'module' } })
-    const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
-
-    return (
-        <div ref={setNodeRef} style={style} className="mb-4">
-            <div className="flex items-start gap-2">
-                <div {...attributes} {...listeners} className="cursor-grab text-gray-500 hover:text-white mt-4">
-                    <GripVertical className="w-5 h-5" />
-                </div>
-                {children}
-            </div>
-        </div>
-    )
-}
-
-// --- SORTABLE TOPIC ---
-function SortableTopic({ id, topic, courseId, onEdit, onDelete }: { id: string, topic: any, courseId: string, onEdit: () => void, onDelete: () => void }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'topic', moduleId: topic.moduleId } })
-    const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
-
-    return (
-        <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 bg-black/20 rounded-lg hover:bg-black/40 transition-colors border border-transparent hover:border-white/5">
-            <div {...attributes} {...listeners} className="cursor-grab text-gray-500 hover:text-white">
-                <GripVertical className="w-4 h-4" />
-            </div>
-            <div className="flex-1 cursor-pointer" onClick={onEdit}>
-                <h3 className="font-medium text-sm text-gray-200">{topic.title}</h3>
-                <div className="flex gap-2 mt-1">
-                    {topic.resources?.filter((r: any) => r.type === 'VIDEO').length > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-blue-400">
-                            <Video className="w-3 h-3" /> {topic.resources.filter((r: any) => r.type === 'VIDEO').length}
-                        </span>
-                    )}
-                    {topic.resources?.filter((r: any) => r.type === 'PDF').length > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-purple-400">
-                            <FileText className="w-3 h-3" /> {topic.resources.filter((r: any) => r.type === 'PDF').length}
-                        </span>
-                    )}
-                    {topic.resources?.filter((r: any) => r.type === 'QUIZ').length > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-green-400">
-                            <HelpCircle className="w-3 h-3" /> {topic.resources.filter((r: any) => r.type === 'QUIZ').length}
-                        </span>
-                    )}
-                </div>
-            </div>
-            <a
-                href={`/courses/${courseId}/learn/${topic.id}?preview=true`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className='inline-flex items-center justify-center p-0 w-6 h-6 rounded-md hover:bg-white/10 text-blue-400 mr-1'
-                title="Preview as Student"
-            >
-                <Eye className="w-3 h-3" />
-            </a>
-            <Button size="icon" variant="ghost" className="text-red-400 h-6 w-6" onClick={(e) => { e.stopPropagation(); onDelete() }}>
-                <Trash2 className="w-3 h-3" />
-            </Button>
-        </div>
-    )
-}
 
 // --- INPUT SHEET STATE ---
 type SheetMode = 'module' | 'topic' | 'delete-module' | 'delete-topic' | null
@@ -95,11 +34,34 @@ interface InputSheetState {
 // --- MAIN COMPONENT ---
 export function CreatorStudio({ course, allSkills }: { course: any, allSkills: any[] }) {
     const [modules, setModules] = useState(course.modules)
-    const [editingTopic, setEditingTopic] = useState<any | null>(null)
+    const [editingResource, setEditingResource] = useState<{ resource: any, topicId: string } | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [sheetState, setSheetState] = useState<InputSheetState>({ mode: null, title: '' })
     const [activeId, setActiveId] = useState<string | null>(null)
     const [activeType, setActiveType] = useState<'module' | 'topic' | null>(null)
+    const [addingResourceToTopicId, setAddingResourceToTopicId] = useState<string | null>(null)
+
+    // Expand/collapse state for modules and topics
+    const [expandedModules, setExpandedModules] = useState<Set<string>>(() => new Set(course.modules.map((m: any) => m.id)))
+    const [expandedTopics, setExpandedTopics] = useState<Set<string>>(() => new Set(course.modules.flatMap((m: any) => m.topics.map((t: any) => t.id))))
+
+    const toggleModule = (moduleId: string) => {
+        setExpandedModules(prev => {
+            const next = new Set(prev)
+            if (next.has(moduleId)) next.delete(moduleId)
+            else next.add(moduleId)
+            return next
+        })
+    }
+
+    const toggleTopic = (topicId: string) => {
+        setExpandedTopics(prev => {
+            const next = new Set(prev)
+            if (next.has(topicId)) next.delete(topicId)
+            else next.add(topicId)
+            return next
+        })
+    }
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -257,14 +219,6 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
 
     const isDeleteMode = sheetState.mode === 'delete-module' || sheetState.mode === 'delete-topic'
 
-    // Callback to refresh topic resources after edit
-    const handleTopicUpdate = (topicId: string, newResources: any[]) => {
-        setModules(modules.map((c: any) => ({
-            ...c,
-            topics: c.topics.map((t: any) => t.id === topicId ? { ...t, resources: newResources } : t)
-        })))
-    }
-
     return (
         <div className="p-8 max-w-5xl mx-auto space-y-8">
             <header className="flex justify-between items-center border-b border-white/10 pb-6">
@@ -293,7 +247,7 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
                 <SortableContext items={modules.map((c: any) => c.id)} strategy={verticalListSortingStrategy}>
                     <div className="space-y-4">
                         {modules.map((module: any) => (
-                            <SortableModule key={module.id} id={module.id}>
+                            <SortableModule key={module.id} id={module.id} isExpanded={expandedModules.has(module.id)} onToggle={() => toggleModule(module.id)}>
                                 <div className="flex-1 bg-[#16181d] border border-white/5 rounded-xl overflow-hidden group">
                                     <div className="p-4 bg-white/5 flex justify-between items-center border-b border-white/5">
                                         <h2 className="font-semibold text-lg">{module.title}</h2>
@@ -307,23 +261,75 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
                                         </div>
                                     </div>
 
-                                    <div className="p-4 space-y-2">
-                                        {module.topics.length === 0 && (
-                                            <div className="text-sm text-gray-600 italic py-4 text-center">No topics yet. Add one above.</div>
-                                        )}
-                                        <SortableContext items={module.topics.map((t: any) => t.id)} strategy={verticalListSortingStrategy}>
-                                            {module.topics.map((topic: any) => (
-                                                <SortableTopic
-                                                    key={topic.id}
-                                                    id={topic.id}
-                                                    topic={{ ...topic, moduleId: module.id }}
-                                                    courseId={course.id}
-                                                    onEdit={() => setEditingTopic({ ...topic, moduleId: module.id })}
-                                                    onDelete={() => openDeleteTopicSheet(topic.id)}
-                                                />
-                                            ))}
-                                        </SortableContext>
-                                    </div>
+                                    {expandedModules.has(module.id) && (
+                                        <div className="p-4 space-y-2">
+                                            {module.topics.length === 0 && (
+                                                <div className="text-sm text-gray-600 italic py-4 text-center">No topics yet. Add one above.</div>
+                                            )}
+                                            <SortableContext items={module.topics.map((t: any) => t.id)} strategy={verticalListSortingStrategy}>
+                                                {module.topics.map((topic: any) => (
+                                                    <SortableTopic
+                                                        key={topic.id}
+                                                        id={topic.id}
+                                                        topic={{ ...topic, moduleId: module.id }}
+                                                        courseId={course.id}
+                                                        onDelete={() => openDeleteTopicSheet(topic.id)}
+                                                        onAddResource={async (type) => {
+                                                            setAddingResourceToTopicId(topic.id)
+                                                            try {
+                                                                const newResource = await createTopicResource(topic.id, type, {}, course.id)
+                                                                setModules(modules.map((m: any) => ({
+                                                                    ...m,
+                                                                    topics: m.topics.map((t: any) =>
+                                                                        t.id === topic.id
+                                                                            ? { ...t, resources: [...(t.resources || []), newResource] }
+                                                                            : t
+                                                                    )
+                                                                })))
+                                                                toast.success(`${type} added successfully`)
+                                                                // Open the resource-specific editor
+                                                                setEditingResource({ resource: newResource, topicId: topic.id })
+                                                            } catch (error) {
+                                                                toast.error('Failed to add resource')
+                                                            } finally {
+                                                                setAddingResourceToTopicId(null)
+                                                            }
+                                                        }}
+                                                        onResourcesReorder={(reorderedResources) => {
+                                                            setModules(modules.map((m: any) => ({
+                                                                ...m,
+                                                                topics: m.topics.map((t: any) =>
+                                                                    t.id === topic.id
+                                                                        ? { ...t, resources: reorderedResources }
+                                                                        : t
+                                                                )
+                                                            })))
+                                                        }}
+                                                        onResourceDelete={async (resourceId) => {
+                                                            try {
+                                                                await deleteTopicResource(resourceId, course.id)
+                                                                setModules(modules.map((m: any) => ({
+                                                                    ...m,
+                                                                    topics: m.topics.map((t: any) =>
+                                                                        t.id === topic.id
+                                                                            ? { ...t, resources: (t.resources || []).filter((r: any) => r.id !== resourceId) }
+                                                                            : t
+                                                                    )
+                                                                })))
+                                                                toast.success('Resource deleted')
+                                                            } catch (error) {
+                                                                toast.error('Failed to delete resource')
+                                                            }
+                                                        }}
+                                                        onResourceEdit={(resource) => setEditingResource({ resource, topicId: topic.id })}
+                                                        isAddingResource={addingResourceToTopicId === topic.id}
+                                                        isExpanded={expandedTopics.has(topic.id)}
+                                                        onToggle={() => toggleTopic(topic.id)}
+                                                    />
+                                                ))}
+                                            </SortableContext>
+                                        </div>
+                                    )}
                                 </div>
                             </SortableModule>
                         ))}
@@ -331,14 +337,61 @@ export function CreatorStudio({ course, allSkills }: { course: any, allSkills: a
                 </SortableContext>
             </DndContext>
 
-            {editingTopic && (
-                <TopicEditorDrawer
+            {/* Resource-specific editors */}
+            {editingResource?.resource?.type === 'VIDEO' && (
+                <VideoEditorDrawer
                     courseId={course.id}
-                    topicId={editingTopic.id}
-                    open={!!editingTopic}
-                    onOpenChange={(open) => !open && setEditingTopic(null)}
-                    initialResources={editingTopic.resources || []}
-                    onResourcesChange={(newResources) => handleTopicUpdate(editingTopic.id, newResources)}
+                    resource={editingResource.resource}
+                    open={true}
+                    onOpenChange={(open) => !open && setEditingResource(null)}
+                    onResourceUpdate={(updatedResource) => {
+                        setModules(modules.map((m: any) => ({
+                            ...m,
+                            topics: m.topics.map((t: any) =>
+                                t.id === editingResource.topicId
+                                    ? { ...t, resources: t.resources.map((r: any) => r.id === updatedResource.id ? updatedResource : r) }
+                                    : t
+                            )
+                        })))
+                    }}
+                />
+            )}
+
+            {editingResource?.resource?.type === 'PDF' && (
+                <ReadingEditorDrawer
+                    courseId={course.id}
+                    resource={editingResource.resource}
+                    open={true}
+                    onOpenChange={(open) => !open && setEditingResource(null)}
+                    onResourceUpdate={(updatedResource) => {
+                        setModules(modules.map((m: any) => ({
+                            ...m,
+                            topics: m.topics.map((t: any) =>
+                                t.id === editingResource.topicId
+                                    ? { ...t, resources: t.resources.map((r: any) => r.id === updatedResource.id ? updatedResource : r) }
+                                    : t
+                            )
+                        })))
+                    }}
+                />
+            )}
+
+            {editingResource?.resource?.type === 'QUIZ' && (
+                <QuizEditorDrawer
+                    courseId={course.id}
+                    resource={editingResource.resource}
+                    open={true}
+                    onOpenChange={(open) => !open && setEditingResource(null)}
+                    onResourceUpdate={(updatedResource) => {
+                        setModules(modules.map((m: any) => ({
+                            ...m,
+                            topics: m.topics.map((t: any) =>
+                                t.id === editingResource.topicId
+                                    ? { ...t, resources: t.resources.map((r: any) => r.id === updatedResource.id ? updatedResource : r) }
+                                    : t
+                            )
+                        })))
+                    }}
                 />
             )}
 

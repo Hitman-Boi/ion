@@ -1,7 +1,7 @@
 import { getCourseHierarchy } from "@/app/actions/course-editor.actions"
 import { auth } from "@/auth"
 import { CreatorStudio } from "./_components/CreatorStudio"
-import { redirect } from "next/navigation"
+import { redirect, notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 
 import { getSkills } from "@/app/actions/skills.actions"
@@ -11,7 +11,7 @@ export default async function StudioPage({ params }: { params: { courseId: strin
     const session = await auth()
     if (!session?.user) return redirect("/api/auth/signin")
 
-    const [course, allSkills, flags, userInfo] = await Promise.all([
+    const [course, allSkills, flags, userInfo, enrollment] = await Promise.all([
         getCourseHierarchy(params.courseId),
         getSkills(),
         prisma.contentFlag.findMany({
@@ -23,11 +23,27 @@ export default async function StudioPage({ params }: { params: { courseId: strin
             where: { id: session.user.id },
             select: { role: true },
         }),
+        prisma.enrollment.findUnique({
+            where: {
+                userId_courseId: {
+                    userId: session.user.id!,
+                    courseId: params.courseId,
+                },
+            },
+            select: { role: true },
+        }),
     ])
-    if (!course) return <div>Course not found</div>
+
+    if (!course) return notFound()
 
     const isOwner = course.instructorId === session.user.id
     const isAdmin = userInfo?.role === "ADMIN"
+    const isInstructor = userInfo?.role === "INSTRUCTOR" || enrollment?.role === "INSTRUCTOR"
+
+    // Only allow access to admins, course owner, or instructors
+    if (!isAdmin && !isOwner && !isInstructor) {
+        return redirect(`/courses/${params.courseId}`)
+    }
 
     return (
         <div className="min-h-screen bg-[#0f1115] text-white">

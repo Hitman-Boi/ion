@@ -15,7 +15,7 @@ test.describe('Learning Path Workflow', () => {
         await expect(page).toHaveURL(/.*\/learner-dashboard/);
 
         // Navigate to Roles Page
-        await page.goto('/admin/roles');
+        await page.goto('/admin-dashboard/roles');
         await expect(page.getByRole('heading', { name: 'Roles & Curriculums' })).toBeVisible();
 
         // Verify Path "Frontend Mastery" exists (from seed data)

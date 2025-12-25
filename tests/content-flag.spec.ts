@@ -121,14 +121,14 @@ test.describe("Flag Dismissal (Admin)", () => {
     });
 
     test("admin should see dismiss option for flags", async ({ page }) => {
-        await page.goto("/admin");
+        await page.goto("/admin-dashboard");
 
         // Admin dashboard should load
-        await expect(page).toHaveURL(/\/admin/);
+        await expect(page).toHaveURL(/\/admin-dashboard/);
     });
 
     test("dismissed flag should be removed from open count", async ({ page }) => {
-        await page.goto("/admin");
+        await page.goto("/admin-dashboard");
 
         await expect(page).not.toHaveTitle(/Error/);
     });

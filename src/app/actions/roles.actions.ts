@@ -20,7 +20,7 @@ export async function createRole(data: { title: string; description?: string; sk
         },
     });
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
     return role;
 }
 
@@ -41,7 +41,7 @@ export async function updateRole(id: string, data: { title: string; description?
         },
     });
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
     return role;
 }
 
@@ -55,7 +55,7 @@ export async function deleteRole(id: string) {
         where: { id },
     });
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
 }
 
 export async function updateRoleLinkPath(roleId: string, level: string, pathId: string) {
@@ -87,7 +87,7 @@ export async function updateRoleLinkPath(roleId: string, level: string, pathId: 
         }
     })
 
-    revalidatePath("/admin/roles");
+    revalidatePath("/admin-dashboard/roles");
 }
 
 export async function getRoles() {

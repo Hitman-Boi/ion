@@ -343,7 +343,6 @@ model TopicResource {
   id         String       @id @default(uuid())
   topicId    String       @map("topic_id")
   type       ResourceType
-  title      String // e.g. "Intro Video", "Handout PDF", "Concept Check"
   contentUrl String?      @map("content_url") // For Video/PDF
   quizData   Json?        @map("quiz_data") // For Quiz
   sortOrder  Int          @default(0) @map("sort_order")

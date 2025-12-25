@@ -37,7 +37,7 @@ export async function completeCourse(courseId: string) {
     }
 
     revalidatePath("/learner-dashboard");
-    revalidatePath("/admin/skills");
+    revalidatePath("/admin-dashboard/skills");
 }
 
 export async function enrollUser(courseId: string) {

@@ -107,7 +107,7 @@ export async function resolveContentFlag(flagId: string): Promise<void> {
     await updateCourseHealthScore(flag.courseId);
 
     revalidatePath(`/courses/${flag.courseId}`);
-    revalidatePath(`/admin`);
+    revalidatePath(`/admin-dashboard`);
 }
 
 /**
@@ -150,7 +150,7 @@ export async function dismissContentFlag(flagId: string): Promise<void> {
     await updateCourseBugReportCount(flag.courseId);
     await updateCourseHealthScore(flag.courseId);
 
-    revalidatePath(`/admin`);
+    revalidatePath(`/admin-dashboard`);
 }
 
 /**

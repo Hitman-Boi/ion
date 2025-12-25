@@ -241,7 +241,6 @@ CREATE TABLE "topic_resources" (
     "id" TEXT NOT NULL,
     "topic_id" TEXT NOT NULL,
     "type" "ResourceType" NOT NULL,
-    "title" TEXT NOT NULL,
     "content_url" TEXT,
     "quiz_data" JSONB,
     "sort_order" INTEGER NOT NULL DEFAULT 0,

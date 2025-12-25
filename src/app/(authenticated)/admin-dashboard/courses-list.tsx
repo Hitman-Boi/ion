@@ -49,7 +49,7 @@ export function CoursesList({ courses }: CoursesListProps) {
                         return (
                             <Link
                                 key={course.id}
-                                href={`/admin/courses/${course.id}`}
+                                href={`/admin-dashboard/courses/${course.id}`}
                                 className="block"
                             >
                                 <div className="rounded-lg border p-4 shadow-sm hover:bg-accent/50 transition-colors">

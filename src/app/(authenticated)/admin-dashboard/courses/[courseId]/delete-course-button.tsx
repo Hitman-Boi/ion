@@ -25,7 +25,7 @@ export function DeleteCourseButton({ courseId }: { courseId: string }) {
         try {
             await deleteCourse(courseId)
             setOpen(false)
-            router.push("/admin")
+            router.push("/admin-dashboard")
         } catch (error) {
             console.error("Failed to delete course", error)
             // You might want to add a toast notification here
