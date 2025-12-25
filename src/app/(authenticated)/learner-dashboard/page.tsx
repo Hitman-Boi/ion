@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { prisma } from "@/lib/prisma"
+import { getLearnerDashboardData } from "@/app/actions/dashboard.actions"
 import { BookOpen, Clock, Compass } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -20,92 +20,17 @@ export default async function DashboardPage() {
 
     const isAdmin = (session.user as any).role === "ADMIN";
 
-    // Fetch User with Target Roles & Progress
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        include: {
-            targetRoles: {
-                include: {
-                    skills: true,
-                    learningPaths: {
-                        include: {
-                            items: {
-                                orderBy: { orderIndex: 'asc' },
-                                include: {
-                                    course: {
-                                        include: {
-                                            modules: {
-                                                include: {
-                                                    topics: { select: { id: true } }
-                                                }
-                                            }
-                                        }
-                                    },
-                                    module: {
-                                        include: {
-                                            topics: { select: { id: true } }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            skills: { include: { skill: true } } // User acquired skills
-        }
-    })
+    // Fetch all dashboard data using the action
+    const { user, allRoles, userProgress, subscribedPaths, enrollments } = await getLearnerDashboardData(session.user.id)
 
-    // Fetch All Roles for Picker (Show picker if no roles selected, or allow adding more)
-    // We want to show RolePicker if user has NO roles, or maybe as an option to "Add Goal"
-    // For now, let's pass allRoles to the picker always so we can reuse it, or fetch only if needed.
-    // The design says: "Choose multiple career goals". So let's fetch all roles.
-    const allRoles = await prisma.jobRole.findMany();
     const userTargetRoleIds = user?.targetRoles.map(r => r.id) || [];
 
     // Global Acquired Skills
     const acquiredSkillsKeyed = new Set(user?.skills.map(us => us.skill.name) || []);
     const acquiredSkillsList = Array.from(acquiredSkillsKeyed);
 
-    // 3. Fetch User Progress for all topics (needed for path progress)
-    const userProgress = await prisma.userProgress.findMany({
-        where: {
-            userId: session.user.id,
-            isTopicComplete: true
-        },
-        select: { topicId: true }
-    });
     const completedTopicIds = new Set(userProgress.map(p => p.topicId));
 
-    // 4. Fetch Directly Subscribed Learning Paths
-    const subscribedPaths = await prisma.userLearningPath.findMany({
-        where: { userId: session.user.id },
-        include: {
-            learningPath: {
-                include: {
-                    items: {
-                        orderBy: { orderIndex: 'asc' },
-                        include: {
-                            course: {
-                                include: {
-                                    modules: {
-                                        include: {
-                                            topics: { select: { id: true } }
-                                        }
-                                    }
-                                }
-                            },
-                            module: {
-                                include: {
-                                    topics: { select: { id: true } }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    });
 
     // Process each target role to calculate stats
     const activeGoals = user?.targetRoles.map(role => {
@@ -178,29 +103,6 @@ export default async function DashboardPage() {
     });
 
     // (teachingCourses fetch logic removed)
-
-    // 2. Fetch Enrolled Courses
-    const enrollments = await prisma.enrollment.findMany({
-        where: {
-            userId: session.user.id,
-            role: "STUDENT",
-            course: {
-                deletedAt: null
-            }
-        },
-        include: {
-            course: {
-                include: {
-                    modules: {
-                        include: {
-                            topics: { select: { id: true } }
-                        }
-                    }
-                }
-            },
-        },
-        orderBy: { updatedAt: 'desc' }
-    });
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">

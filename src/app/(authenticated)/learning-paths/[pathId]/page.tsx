@@ -3,40 +3,17 @@ import { JourneyMap } from "@/components/learning-path/journey-map"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { prisma } from "@/lib/prisma"
+import { getLearningPathPageData } from "@/app/actions/learning-paths.actions"
 import { ArrowLeft, BookOpen, Clock, Play, Lock } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { SubscribeButton } from "./_components/SubscribeButton"
+import { SubscribeButton } from "./_components/subscribe-button"
 
 export default async function PathPage({ params }: { params: { pathId: string } }) {
     const session = await auth()
     if (!session?.user) redirect("/login")
 
-    const path = await prisma.learningPath.findUnique({
-        where: { id: params.pathId },
-        include: {
-            items: {
-                orderBy: { orderIndex: 'asc' },
-                include: {
-                    course: {
-                        include: {
-                            modules: {
-                                include: {
-                                    topics: { select: { id: true } }
-                                }
-                            }
-                        }
-                    },
-                    module: {
-                        include: {
-                            topics: { select: { id: true } }
-                        }
-                    }
-                }
-            }
-        }
-    })
+    const { path, isSubscribed, userProgress } = await getLearningPathPageData(params.pathId, session.user.id)
 
     if (!path) {
         return (
@@ -49,25 +26,6 @@ export default async function PathPage({ params }: { params: { pathId: string } 
         )
     }
 
-    // Check subscription status
-    const subscription = await prisma.userLearningPath.findUnique({
-        where: {
-            userId_learningPathId: {
-                userId: session.user.id,
-                learningPathId: params.pathId
-            }
-        }
-    });
-    const isSubscribed = !!subscription;
-
-    // Fetch User Progress (only if subscribed, for better UX)
-    const userProgress = await prisma.userProgress.findMany({
-        where: {
-            userId: session.user.id,
-            isTopicComplete: true
-        },
-        select: { topicId: true }
-    })
     const completedTopicIds = new Set(userProgress.map(p => p.topicId))
 
     // Calculate overall stats

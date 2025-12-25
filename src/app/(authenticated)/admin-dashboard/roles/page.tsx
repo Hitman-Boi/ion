@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
+import { getAdminRolesPageData } from "@/app/actions/dashboard.actions"
 import { redirect } from "next/navigation"
 import RolesPageWrapper from "./_components/roles-page-wrapper"
 
@@ -10,33 +10,8 @@ export default async function AdminRolesPage() {
         redirect("/learner-dashboard")
     }
 
-    const roles = await prisma.jobRole.findMany({
-        include: {
-            learningPaths: true, // Needed for linking logic
-        },
-        orderBy: { title: 'asc' }
-    })
+    const { roles, learningPaths, allCourses } = await getAdminRolesPageData()
 
-    const learningPaths = await prisma.learningPath.findMany({
-        include: {
-            items: true,
-            roles: true
-        },
-        orderBy: { title: 'asc' }
-    })
-
-    const allCourses = await prisma.course.findMany({
-        where: { deletedAt: null },
-        select: {
-            id: true,
-            title: true,
-            modules: {
-                select: { id: true, title: true, sortOrder: true },
-                orderBy: { sortOrder: 'asc' }
-            }
-        },
-        orderBy: { title: 'asc' }
-    })
 
     return (
         <div className="w-full h-full bg-background">

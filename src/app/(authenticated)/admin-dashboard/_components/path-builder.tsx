@@ -196,6 +196,7 @@ export function PathBuilder({ learningPath, allCourses }: PathBuilderProps) {
                                             size="icon"
                                             className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                             onClick={() => handleDelete(item.id)}
+                                            data-testid="delete-item-button"
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>

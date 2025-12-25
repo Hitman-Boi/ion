@@ -1,6 +1,6 @@
 import * as matchers from '@testing-library/jest-dom/matchers';
 import { afterAll, afterEach, beforeAll, expect } from 'vitest';
-import { server } from './mocks/server';
+import { server } from './src/mocks/server';
 
 expect.extend(matchers);
 

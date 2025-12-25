@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { FocusPlayer } from "./_components/FocusPlayer"
+import { FocusPlayer } from "./_components/focus-player"
 import { prisma as db } from "@/lib/prisma"
 import { Topic, TopicResource, UserProgress } from "@prisma/client"
 import { redirect } from "next/navigation"

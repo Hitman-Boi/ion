@@ -273,3 +273,31 @@ export async function updateCourseSkills(courseId: string, skillIds: string[]) {
     revalidatePath(`/courses/${courseId}/studio`)
     revalidatePath(`/admin-dashboard/courses/${courseId}`)
 }
+
+/**
+ * Fetch data for the course studio page.
+ */
+export async function getStudioPageData(courseId: string, userId: string) {
+    const [flags, userInfo, enrollment] = await Promise.all([
+        db.contentFlag.findMany({
+            where: { courseId, status: "OPEN" },
+            select: { id: true, reason: true, details: true, createdAt: true },
+            orderBy: { createdAt: "desc" },
+        }),
+        db.user.findUnique({
+            where: { id: userId },
+            select: { role: true },
+        }),
+        db.enrollment.findUnique({
+            where: {
+                userId_courseId: {
+                    userId,
+                    courseId,
+                },
+            },
+            select: { role: true },
+        }),
+    ])
+
+    return { flags, userInfo, enrollment }
+}

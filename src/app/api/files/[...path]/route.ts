@@ -60,7 +60,7 @@ export async function GET(
         }
 
     } catch (error) {
-        console.error("File serve error:", error);
+        console.error("File serve error DEBUG:", error);
         return new NextResponse("File not found", { status: 404 });
     }
 }

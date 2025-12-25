@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { getCourseById } from "@/app/actions/courses.actions";
 import { redirect } from "next/navigation";
-import { CourseSidebar } from "./_components/CourseSidebar";
+import { CourseSidebar } from "./_components/course-sidebar";
 
 export default async function LearnLayout({
     children,

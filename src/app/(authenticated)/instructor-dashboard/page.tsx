@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { CreateCourseButton } from "@/components/create-course-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
+import { getInstructorDashboardData } from "@/app/actions/dashboard.actions";
 import { Users, Plus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -16,23 +16,9 @@ export default async function InstructorDashboardPage() {
 
     const isAdmin = (session.user as any).role === "ADMIN";
 
-    // 1. Fetch Teaching Courses
-    // (Logic moved from learner-dashboard)
-    const teachingCourses = await prisma.course.findMany({
-        where: {
-            OR: [
-                { instructorId: session.user.id },
-                { enrollments: { some: { userId: session.user.id, role: "INSTRUCTOR" } } }
-            ],
-            deletedAt: null,
-        },
-        include: {
-            _count: {
-                select: { enrollments: { where: { role: "STUDENT" } } }
-            }
-        },
-        orderBy: { updatedAt: 'desc' }
-    });
+    // Fetch Teaching Courses using the action
+    const { teachingCourses } = await getInstructorDashboardData(session.user.id);
+
 
     // If not admin and no courses, maybe redirect or show empty state?
     // Access control: strictly if they have courses or are admin.

@@ -3,7 +3,7 @@ import { Waypoints } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CreateCourseButton } from "@/components/create-course-button"
-import { prisma } from "@/lib/prisma"
+import { getAdminDashboardData } from "@/app/actions/dashboard.actions"
 import { redirect } from "next/navigation"
 import { ManageAdminsSheet } from "./manage-admins-sheet"
 import { CoursesList } from "./courses-list"
@@ -19,20 +19,8 @@ export default async function AdminPage() {
         redirect("/learner-dashboard")
     }
 
-    const [adminUsers, courses, roles, skillGapData, allSkills] = await Promise.all([
-        prisma.user.findMany({
-            where: { role: "ADMIN" },
-            orderBy: { createdAt: "desc" },
-        }),
-        prisma.course.findMany({
-            include: {
-                enrollments: {
-                    select: { role: true }
-                },
-                modules: true
-            },
-            orderBy: { createdAt: "desc" },
-        }),
+    const [{ adminUsers, courses }, roles, skillGapData, allSkills] = await Promise.all([
+        getAdminDashboardData(),
         getRoles(),
         getSkillGapData(),
         getSkills()

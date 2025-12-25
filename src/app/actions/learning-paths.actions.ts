@@ -230,3 +230,57 @@ export async function isSubscribedToLearningPath(pathId: string): Promise<boolea
     return !!subscription;
 }
 
+/**
+ * Fetch all data needed for the learning path detail page.
+ */
+export async function getLearningPathPageData(pathId: string, userId: string) {
+    const path = await prisma.learningPath.findUnique({
+        where: { id: pathId },
+        include: {
+            items: {
+                orderBy: { orderIndex: 'asc' },
+                include: {
+                    course: {
+                        include: {
+                            modules: {
+                                include: {
+                                    topics: { select: { id: true } }
+                                }
+                            }
+                        }
+                    },
+                    module: {
+                        include: {
+                            topics: { select: { id: true } }
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    // Check subscription status
+    const subscription = await prisma.userLearningPath.findUnique({
+        where: {
+            userId_learningPathId: {
+                userId,
+                learningPathId: pathId
+            }
+        }
+    })
+
+    // Fetch User Progress
+    const userProgress = await prisma.userProgress.findMany({
+        where: {
+            userId,
+            isTopicComplete: true
+        },
+        select: { topicId: true }
+    })
+
+    return {
+        path,
+        isSubscribed: !!subscription,
+        userProgress
+    }
+}
