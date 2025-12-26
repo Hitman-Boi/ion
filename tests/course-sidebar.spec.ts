@@ -23,38 +23,44 @@ test.describe('Course Sidebar', () => {
 
 
         // Ensure we are on the learning page
-        await expect(page).toHaveURL(/\/learn\//);
+        await expect(page).toHaveURL(/\/topic\//);
 
-        // 1. Verify Initial State (Collapsed)
-        // Collapsed width is 60px
+        // 1. Verify Initial State (Expanded) - sidebar now defaults to expanded
+        // Expanded width is 320px (w-80 = 20rem = 320px)
         const sidebar = page.locator('.h-full.flex.flex-col.border-r').first();
         const initialBox = await sidebar.boundingBox();
-        expect(initialBox?.width).toBeCloseTo(60, 0);
+        expect(initialBox?.width).toBeGreaterThan(300);
 
-        // Sidebar content should be hidden (titles)
-        // Use sidebar locator to ensure we aren't finding the title in the main content area
-        await expect(sidebar.getByText('Introduction')).not.toBeVisible();
-        await expect(sidebar.getByText('Welcome to the Course')).not.toBeVisible();
+        // Sidebar content should be visible when expanded
+        await expect(sidebar.getByText('Introduction')).toBeVisible();
+        await expect(sidebar.getByText('Welcome to the Course')).toBeVisible();
 
-        // 2. Expand Sidebar via Button
+        // 2. Collapse Sidebar via Button
         // The toggle button is in the sidebar header
         const toggleButton = sidebar.getByRole('button').first();
         await toggleButton.waitFor({ state: 'visible' });
         await toggleButton.click({ force: true });
 
-        // 3. Verify Expanded State
-        // Expanded width is 320px (w-80 = 20rem = 320px)
-        // Wait for transition (increased from 500ms)
-        await page.waitForTimeout(1000);
+        // 3. Verify Collapsed State
+        // Collapsed width is 60px
+        await page.waitForTimeout(500); // Wait for transition
+        const collapsedBox = await sidebar.boundingBox();
+        expect(collapsedBox?.width).toBeCloseTo(60, 0);
+
+        // Sidebar content should be hidden (titles)
+        await expect(sidebar.getByText('Introduction')).not.toBeVisible();
+        await expect(sidebar.getByText('Welcome to the Course')).not.toBeVisible();
+
+        // 4. Expand Sidebar again
+        await toggleButton.click({ force: true });
+        await page.waitForTimeout(500);
         const expandedBox = await sidebar.boundingBox();
         expect(expandedBox?.width).toBeGreaterThan(300);
 
-        // Content should be visible in sidebar
+        // Content should be visible again
         await expect(sidebar.getByText('Introduction')).toBeVisible();
-        await expect(sidebar.getByText('Welcome to the Course')).toBeVisible();
-        await expect(sidebar.getByText('Setup Environment')).toBeVisible();
 
-        // 4. Test Navigation
+        // 5. Test Navigation
         // Click on the second topic
         await page.getByRole('link', { name: 'Setup Environment' }).click();
 
@@ -62,7 +68,7 @@ test.describe('Course Sidebar', () => {
         // We can check if the active state changed manually or just ensure no error
         await expect(page).not.toHaveURL(/error/);
 
-        // 5. Test Keyboard Shortcut (Cmd+B)
+        // 6. Test Keyboard Shortcut (Cmd+B)
         // Focus somewhere
         await page.mouse.click(100, 100);
 
@@ -79,13 +85,10 @@ test.describe('Course Sidebar', () => {
         expect(expandedBox2?.width).toBeGreaterThan(300);
 
         // Press Shortcut to Collapse
-        await page.keyboard.press('Control+b'); // Fallback for Linux/Win tests if needed, but Mac uses Meta
-        // If the test is running on linux (CI), it might need Control.
-        // Let's try Meta first as consistent with manual check.
-        // Actually, let's just test Toggle again.
         await page.keyboard.press('Meta+b');
         await page.waitForTimeout(500);
         const collapsedBox3 = await sidebar.boundingBox();
         expect(collapsedBox3?.width).toBeCloseTo(60, 0);
     });
 });
+

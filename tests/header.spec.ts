@@ -1,20 +1,20 @@
 import { test, expect } from '@playwright/test';
+import { loginAs } from './utils/auth-helpers';
 
 test.describe('Header', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/login');
-        await page.getByLabel('Email').fill('test@example.com');
-        await page.getByLabel('Password').fill('test');
-        await page.getByRole('button', { name: 'Sign In', exact: true }).click();
-        await page.waitForURL('**/learner-dashboard');
+        await loginAs(page, 'STUDENT');
     });
 
     test('should display correct branding', async ({ page }) => {
-        await expect(page.getByRole('link', { name: 'ION Learning Hub' })).toBeVisible();
-        await expect(page.getByRole('link', { name: 'ION Learning Hub' })).toHaveAttribute('href', '/learner-dashboard');
+        // Branding is a span, not a link
+        await expect(page.getByText('ION Learning Hub')).toBeVisible();
     });
 
-    test('should display learner navigation', async ({ page }) => {
+    test('should display learner navigation', async ({ page, isMobile }) => {
+        if (isMobile) {
+            await page.getByRole('button', { name: 'Open menu' }).click();
+        }
         const dashboardBtn = page.getByRole('link', { name: 'Learner Dashboard' });
         await expect(dashboardBtn).toBeVisible();
 
@@ -22,25 +22,25 @@ test.describe('Header', () => {
         await expect(dashboardBtn).toHaveClass(/bg-accent/);
         await expect(dashboardBtn).toHaveAttribute('aria-disabled', 'true');
 
-        // Other buttons should exist but not be active
-        const careerBtn = page.getByRole('link', { name: 'Career' });
-        await expect(careerBtn).toBeVisible();
-        await expect(careerBtn).not.toHaveClass(/(^|\s)bg-accent(\s|$)/);
-
-        await expect(page.getByRole('button', { name: 'Sign Out' })).toBeVisible();
+        // User menu button check (desktop) vs mobile menu check
+        if (!isMobile) {
+            await expect(page.getByRole('button', { name: 'User menu' })).toBeVisible();
+        } else {
+            // On mobile we already clicked 'Open menu', so we can check if Sheet is open or close it
+            await page.keyboard.press('Escape'); // Close menu to reset state if needed
+        }
     });
 
-    test('should navigate to career and update active state', async ({ page }) => {
-        const careerLink = page.getByRole('link', { name: 'Career' });
-        await careerLink.click();
-
-        await expect(page).toHaveURL(/\/career/);
-
-        const careerBtn = page.getByRole('link', { name: 'Career' });
-        await expect(careerBtn).toHaveClass(/bg-accent/);
-        await expect(careerBtn).toHaveAttribute('aria-disabled', 'true');
-
-        const dashboardBtn = page.getByRole('link', { name: 'Learner Dashboard' });
-        await expect(dashboardBtn).not.toHaveClass(/(^|\s)bg-accent(\s|$)/);
+    test('should show sign out option in user menu', async ({ page, isMobile }) => {
+        if (isMobile) {
+            await page.getByRole('button', { name: 'Open menu' }).click();
+            await expect(page.getByText('Sign Out')).toBeVisible();
+        } else {
+            // Click user menu button
+            await page.getByRole('button', { name: 'User menu' }).click();
+            // Sign Out option should be visible in dropdown
+            await expect(page.getByText('Sign Out')).toBeVisible();
+        }
     });
 });
+

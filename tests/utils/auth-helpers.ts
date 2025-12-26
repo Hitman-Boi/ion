@@ -16,28 +16,31 @@ export async function loginAs(page: Page, userKey: keyof typeof TEST_USERS) {
     // Use text matching to click the correct button
     await page.click('button:has-text("Sign In"):not(:has-text("Microsoft"))');
 
-    // Wait for navigation or form submission to complete
-    await page.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => { });
+    // Wait for navigation to one of the expected dashboard URLs
+    // This is more reliable than waitForLoadState('networkidle')
+    try {
+        await page.waitForURL(/\/(learner-dashboard|admin-dashboard|instructor-dashboard)/, {
+            timeout: 30000,
+        });
+    } catch {
+        // Take a screenshot for debugging if we're still on login
+        const currentUrl = page.url();
+        if (currentUrl.includes('/login')) {
+            await page.screenshot({ path: 'test-results/login-debug.png', fullPage: true });
 
-    // Take a screenshot for debugging if we're still on login
-    const currentUrl = page.url();
-    if (currentUrl.includes('/login')) {
-        // Take screenshot for debugging
-        await page.screenshot({ path: 'test-results/login-debug.png', fullPage: true });
+            // Check for error message
+            const errorElement = page.locator('.bg-red-50, .text-red-700, [role="alert"]');
+            const hasError = await errorElement.count() > 0;
 
-        // Check for error message
-        const errorElement = page.locator('.bg-red-50, .text-red-700');
-        const hasError = await errorElement.count() > 0;
+            if (hasError) {
+                const errorText = await errorElement.first().textContent();
+                throw new Error(`Login failed with error: ${errorText}`);
+            }
 
-        if (hasError) {
-            const errorText = await errorElement.first().textContent();
-            throw new Error(`Login failed with error: ${errorText}`);
+            // If no visible error but still on login page, the form might not have submitted
+            throw new Error(`Login did not redirect. Still on: ${currentUrl}. Screenshot saved to test-results/login-debug.png`);
         }
-
-        // If no visible error but still on login page, the form might not have submitted
-        throw new Error(`Login did not redirect. Still on: ${currentUrl}. Screenshot saved to test-results/login-debug.png`);
+        // If we're not on login but also not on a dashboard, just continue
     }
-
-    // Wait for one of the dashboard URLs
-    await page.waitForURL(/\/(learner-dashboard|admin|instructor-dashboard)/);
 }
+

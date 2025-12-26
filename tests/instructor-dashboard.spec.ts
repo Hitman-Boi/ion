@@ -3,12 +3,15 @@ import { loginAs } from './utils/auth-helpers';
 
 test.describe('Instructor Dashboard Access', () => {
 
-    test('Instructor (Admin) should see Dashboard link and access page', async ({ page }) => {
+    test('Instructor (Admin) should see Dashboard link and access page', async ({ page, isMobile }) => {
         // --- Login as Instructor ---
         await loginAs(page, 'ADMIN'); // Using admin as they are an instructor too in this test context
 
         // --- Verify Link in Header ---
         // Assuming the link text is "Instructor" based on my implementation
+        if (isMobile) {
+            await page.getByRole('button', { name: 'Open menu' }).click();
+        }
         await expect(page.getByRole('link', { name: 'Instructor Dashboard', exact: true })).toBeVisible();
 
         // --- Navigate to Instructor Dashboard ---

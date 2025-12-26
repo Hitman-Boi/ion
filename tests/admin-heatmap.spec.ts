@@ -46,11 +46,7 @@ test.describe("Skill Matrix Heatmap (Future)", () => {
     // These tests are placeholder for when the feature is implemented
 
     test.beforeEach(async ({ page }) => {
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "admin@learning-hub.iongroup.com");
-        await page.fill('input[name="password"]', "admin");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin)/);
+        await loginAs(page, 'ADMIN');
     });
 
     test("heatmap should be accessible from admin dashboard", async ({ page }) => {
@@ -87,11 +83,7 @@ test.describe("Skill Matrix Heatmap (Future)", () => {
 
 test.describe("Coverage Metrics", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "admin@learning-hub.iongroup.com");
-        await page.fill('input[name="password"]', "admin");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin)/);
+        await loginAs(page, 'ADMIN');
     });
 
     test("should display staleness ratio metric", async ({ page }) => {

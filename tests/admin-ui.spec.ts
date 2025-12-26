@@ -31,10 +31,10 @@ test.describe('Admin UI', () => {
         await expect(page.getByPlaceholder('Search user...')).toBeVisible();
 
         // Search for seeded user
-        await page.getByPlaceholder('Search user...').fill('test');
+        await page.getByPlaceholder('Search user...').fill('test@learning-hub');
 
         // Verify user is in the list
-        await expect(page.getByText('test@example.com')).toBeVisible();
+        await expect(page.getByText('test@learning-hub.iongroup.com')).toBeVisible();
     });
 
     test('Create Course Sheet should be visible', async ({ page }) => {
