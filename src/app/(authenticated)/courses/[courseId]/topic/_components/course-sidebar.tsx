@@ -33,7 +33,7 @@ export const CourseSidebar = ({
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const isPreview = searchParams.get('preview') === 'true';
-    const [isCollapsed, setIsCollapsed] = useState(true);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Keyboard shortcut Cmd+B
     useEffect(() => {
@@ -55,7 +55,7 @@ export const CourseSidebar = ({
     return (
         <div
             className={cn(
-                "h-full flex flex-col border-r border-white/10 bg-[#0f1115] transition-all duration-300 ease-in-out relative z-40",
+                "h-full flex flex-col border-r border-white/10 bg-[#0f1115] transition-all duration-300 ease-in-out relative",
                 isCollapsed ? "w-[60px]" : "w-80"
             )}
         >
@@ -113,7 +113,7 @@ export const CourseSidebar = ({
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <Link
-                                                        href={`/courses/${course.id}/learn/${topic.id}`}
+                                                        href={`/courses/${course.id}/topic/${topic.id}`}
                                                         className={cn(
                                                             "flex items-center gap-x-2 text-sm font-medium px-2 py-2 rounded-md transition-colors group",
                                                             isActive

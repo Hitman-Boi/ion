@@ -43,8 +43,10 @@ export function ReadingEditorDrawer({ courseId, resource, open, onOpenChange, on
         if (!resource) return
         setLoading(true)
         try {
+            const summary = contentUrl ? `Reading: ${contentUrl.split('/').pop() || 'Document'}` : 'Reading Material'
+
             await updateTopicResource(resource.id, { contentUrl }, courseId)
-            onResourceUpdate({ ...resource, contentUrl })
+            onResourceUpdate({ ...resource, contentUrl, summary })
             toast.success('Reading material saved')
             onOpenChange(false)
         } catch (e) {

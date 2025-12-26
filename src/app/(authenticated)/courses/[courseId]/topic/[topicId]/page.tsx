@@ -18,15 +18,28 @@ export default async function LearnPage({ params }: { params: { courseId: string
                     topics: {
                         orderBy: { sortOrder: 'asc' },
                         include: {
-                            resources: true
+                            resources: {
+                                orderBy: { sortOrder: 'asc' }
+                            }
                         }
                     }
                 }
+            },
+            enrollments: {
+                where: { userId: session.user.id }
             }
         }
     })
 
     if (!course) return <div>Course not found</div>
+
+    // Redirect to course page if user is not enrolled (they can subscribe there)
+    const isEnrolled = course.enrollments && course.enrollments.length > 0
+    const isInstructor = course.instructorId === session.user.id
+    const isAdmin = (session.user as any).role === "ADMIN"
+    if (!isEnrolled && !isInstructor && !isAdmin) {
+        return redirect(`/courses/${params.courseId}`)
+    }
 
     // Flatten topics to find current, prev, next
     const allTopics = course.modules.flatMap((c) => c.topics) as (Topic & { resources: TopicResource[] })[]

@@ -1,15 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './utils/auth-helpers';
 
 test.describe('Admin Roles & Paths Page', () => {
     test('Admin should be able to create Roles and Paths and Link them', async ({ page }) => {
         test.setTimeout(120000); // Extended timeout for DB operations
         // --- Admin Login ---
-        await page.goto('/login');
-        await page.getByLabel('Email').fill('admin@example.com');
-        await page.getByLabel('Password').fill('admin');
-        await page.getByRole('button', { name: 'Sign In', exact: true }).click();
-        // Check for dashboard redirect
-        await expect(page).toHaveURL(/\/learner-dashboard/, { timeout: 60000 });
+        await loginAs(page, 'ADMIN');
 
 
         // --- Go to Roles Page ---

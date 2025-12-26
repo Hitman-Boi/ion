@@ -28,7 +28,7 @@ export default async function StudioPage({ params }: { params: { courseId: strin
     }
 
     return (
-        <div className="min-h-screen bg-[#0f1115] text-white">
+        <div className="min-h-full bg-[#0f1115] text-white">
             {/* Flag Resolution Panel for owners */}
             {(isOwner || isAdmin) && flags.length > 0 && (
                 <div className="px-6 pt-4">

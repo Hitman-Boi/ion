@@ -9,14 +9,15 @@ import { authConfig } from "./auth.config"
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
+    trustHost: true,
     adapter: PrismaAdapter(prisma) as any,
     session: { strategy: "jwt" },
     providers: [
-        MicrosoftEntraID({
-            clientId: process.env.AZURE_AD_CLIENT_ID,
-            clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
-            issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0`,
-        }),
+        // MicrosoftEntraID({
+        //     clientId: process.env.AZURE_AD_CLIENT_ID,
+        //     clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
+        //     issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0`,
+        // }),
         Credentials({
             async authorize(credentials) {
                 const log = (msg: string) => console.log('[AUTH_DEBUG] ' + new Date().toISOString() + ' ' + msg);

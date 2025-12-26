@@ -7,7 +7,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3002',
     trace: 'on-first-retry',
-    testIdAttribute: 'data-test',
+    testIdAttribute: 'data-testid',
   },
   projects: [
     {

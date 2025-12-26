@@ -123,6 +123,6 @@ describe('CourseIdPage', () => {
         expect(screen.getByText('Continue Learning')).toBeInTheDocument();
         // Should link to topic 2 (t2)
         const link = screen.getByText('Continue Learning').closest('a');
-        expect(link).toHaveAttribute('href', '/courses/c1/learn/t2');
+        expect(link).toHaveAttribute('href', '/courses/c1/topic/t2');
     });
 });

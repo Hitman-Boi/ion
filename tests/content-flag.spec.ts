@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { loginAs } from "./utils/auth-helpers";
 
 /**
  * Content Flag E2E Tests
@@ -8,11 +9,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Content Flag Submission", () => {
     test.beforeEach(async ({ page }) => {
         // Login as student
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "student@test.com");
-        await page.fill('input[name="password"]', "password123");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin)/);
+        await loginAs(page, 'STUDENT');
     });
 
     test("flag button should be visible in focus player", async ({ page }) => {
@@ -68,11 +65,7 @@ test.describe("Content Flag Submission", () => {
 test.describe("Flag Resolution (Owner)", () => {
     test.beforeEach(async ({ page }) => {
         // Login as instructor/owner
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "instructor@test.com");
-        await page.fill('input[name="password"]', "password123");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin|instructor-dashboard)/);
+        await loginAs(page, 'INSTRUCTOR');
     });
 
     test("flag resolution panel should show in studio for owners", async ({ page }) => {
@@ -113,11 +106,7 @@ test.describe("Flag Resolution (Owner)", () => {
 test.describe("Flag Dismissal (Admin)", () => {
     test.beforeEach(async ({ page }) => {
         // Login as admin
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "admin@test.com");
-        await page.fill('input[name="password"]', "password123");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin)/);
+        await loginAs(page, 'ADMIN');
     });
 
     test("admin should see dismiss option for flags", async ({ page }) => {

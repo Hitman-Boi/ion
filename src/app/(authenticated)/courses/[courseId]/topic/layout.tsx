@@ -48,7 +48,7 @@ export default async function LearnLayout({
             />
 
             {/* Main Content */}
-            <main className="flex-1 h-full overflow-y-auto">
+            <main className="flex-1 h-full overflow-hidden">
                 {children}
             </main>
         </div>

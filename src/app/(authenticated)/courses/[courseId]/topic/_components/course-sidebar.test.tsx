@@ -7,7 +7,7 @@ import { CourseSidebar } from './course-sidebar';
 // Mock next/navigation
 const mockUseSearchParams = vi.hoisted(() => vi.fn(() => new URLSearchParams('')));
 vi.mock('next/navigation', () => ({
-    usePathname: () => '/courses/course-1/learn/topic-1',
+    usePathname: () => '/courses/course-1/topic/topic-1',
     useSearchParams: mockUseSearchParams,
 }));
 
@@ -177,7 +177,7 @@ describe('CourseSidebar', () => {
             fireEvent.click(toggleButton);
 
             const links = screen.getAllByRole('link');
-            expect(links[0]).toHaveAttribute('href', '/courses/course-1/learn/topic-1');
+            expect(links[0]).toHaveAttribute('href', '/courses/course-1/topic/topic-1');
         });
     });
 

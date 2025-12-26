@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { loginAs } from "./utils/auth-helpers";
 
 /**
  * Course Rating E2E Tests
@@ -8,11 +9,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Course Rating Flow", () => {
     test.beforeEach(async ({ page }) => {
         // Login as student
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "student@test.com");
-        await page.fill('input[name="password"]', "password123");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin)/);
+        await loginAs(page, 'STUDENT');
     });
 
     test("should show star rating component in completion modal", async ({ page }) => {
@@ -75,11 +72,7 @@ test.describe("Course Rating Flow", () => {
 
 test.describe("Completion Modal", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "student@test.com");
-        await page.fill('input[name="password"]', "password123");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin)/);
+        await loginAs(page, 'STUDENT');
     });
 
     test("modal should have celebration design elements", async ({ page }) => {

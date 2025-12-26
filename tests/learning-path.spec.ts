@@ -1,18 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './utils/auth-helpers';
 
 test.describe('Learning Path Workflow', () => {
     test('Admin can create and manage learning paths', async ({ page }) => {
         // --- Admin Login ---
-        await page.goto('/login');
-        await page.getByLabel('Email').fill('admin@example.com');
-        await page.getByLabel('Password').fill('admin');
-        await page.getByRole('button', { name: 'Sign In', exact: true }).click();
-
-        // Wait for navigation to complete
-        await page.waitForURL('**/learner-dashboard', { timeout: 10000, waitUntil: 'domcontentloaded' });
-
-        // Check for dashboard redirect
-        await expect(page).toHaveURL(/.*\/learner-dashboard/);
+        await loginAs(page, 'ADMIN');
 
         // Navigate to Roles Page
         await page.goto('/admin-dashboard/roles');
@@ -30,13 +22,7 @@ test.describe('Learning Path Workflow', () => {
 
     test('Student can view and select learning paths', async ({ page }) => {
         // --- Student Login ---
-        await page.goto('/login');
-        await page.getByLabel('Email').fill('test@example.com');
-        await page.getByLabel('Password').fill('test');
-        await page.getByRole('button', { name: 'Sign In', exact: true }).click();
-
-        // Wait for navigation and check dashboard
-        await page.waitForURL('**/learner-dashboard', { timeout: 10000, waitUntil: 'domcontentloaded' });
+        await loginAs(page, 'STUDENT');
         await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
         // Check Role Selection or Journey Map

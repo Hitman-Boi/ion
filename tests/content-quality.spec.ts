@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { loginAs } from "./utils/auth-helpers";
 
 /**
  * Content Quality E2E Tests
@@ -8,11 +9,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Content Health Score Calculation", () => {
     test.beforeEach(async ({ page }) => {
         // Login as admin
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "admin@test.com");
-        await page.fill('input[name="password"]', "password123");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin)/);
+        await loginAs(page, 'ADMIN');
     });
 
     test("should display health score on course cards", async ({ page }) => {

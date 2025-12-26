@@ -77,7 +77,7 @@ export default async function CourseIdPage({
 
                         {isEnrolled ? (
                             <Button asChild size="lg" className="w-full sm:w-auto bg-white text-black hover:bg-white/90 font-semibold gap-2">
-                                <Link href={`/courses/${course.id}/learn/${nextTopicId || firstTopicId}`}>
+                                <Link href={`/courses/${course.id}/topic/${nextTopicId || firstTopicId}`}>
                                     <PlayCircle className="w-5 h-5" />
                                     {nextTopicId ? "Continue Learning" : "Start Learning"}
                                 </Link>
@@ -125,7 +125,7 @@ export default async function CourseIdPage({
                                                         )}
 
                                                         {isEnrolled ? (
-                                                            <Link href={`/courses/${course.id}/learn/${topic.id}`} className="flex-1 text-sm text-white/90 hover:text-white">
+                                                            <Link href={`/courses/${course.id}/topic/${topic.id}`} className="flex-1 text-sm text-white/90 hover:text-white">
                                                                 {topic.title}
                                                             </Link>
                                                         ) : (

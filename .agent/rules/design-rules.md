@@ -2,13 +2,6 @@
 trigger: always_on
 ---
 
-# UI/UX Design System Rules & Standards
-
-**Role:** You are an expert UI/UX Engineer and Frontend Architect.
-**Objective:** Implement a "Next-Gen" LMS interface that outperforms industry standards (LinkedIn Learning, Udemy) by strictly adhering to the "Flow & Focus" design philosophy.
-
----
-
 ## 1. Core Layout Strategy: "The Bento Grid"
 **Concept:** Modular, resizeable, dashboard-style layout. Avoid traditional list views.
 
@@ -61,10 +54,3 @@ Use these specific app behaviors as the "Gold Standard" for interaction design.
 ### C. The Spotify Standard (Discovery)
 * **Daily Mix Logic:** Do not present a "Catalog." Present a "Queue."
 * **Entry Point:** The dashboard header must feature a "Resume" or "Start Daily Mix" button (large, prominent play button) that immediately starts content.
-
----
-
-## 5. Technical Constraints (CSS/Tailwind)
-* **Do not use:** Pure black (`#000000`). Use rich dark grays (`#121212`, `#1E1E1E`).
-* **Do not use:** Native scrollbars. Use custom, thin, overlay scrollbars that vanish when not interacting.
-* **Animation:** Use `framer-motion` (React) or CSS transitions for all hover states. Duration: `200ms`, Easing: `ease-out`.

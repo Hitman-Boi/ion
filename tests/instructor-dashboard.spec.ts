@@ -1,18 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './utils/auth-helpers';
 
 test.describe('Instructor Dashboard Access', () => {
 
     test('Instructor (Admin) should see Dashboard link and access page', async ({ page }) => {
         // --- Login as Instructor ---
-        await page.goto('/login');
-        await page.getByLabel('Email').fill('admin@example.com');
-        await page.getByLabel('Password').fill('admin');
-
-        // Wait for navigation triggered by form submission
-        await Promise.all([
-            page.waitForURL(/\/learner-dashboard/, { timeout: 15000 }),
-            page.getByRole('button', { name: 'Sign In', exact: true }).click()
-        ]);
+        await loginAs(page, 'ADMIN'); // Using admin as they are an instructor too in this test context
 
         // --- Verify Link in Header ---
         // Assuming the link text is "Instructor" based on my implementation
@@ -32,15 +25,7 @@ test.describe('Instructor Dashboard Access', () => {
 
     test('Student should NOT see Dashboard link', async ({ page }) => {
         // --- Login as Student ---
-        await page.goto('/login');
-        await page.getByLabel('Email').fill('test@example.com');
-        await page.getByLabel('Password').fill('test');
-
-        // Wait for navigation triggered by form submission
-        await Promise.all([
-            page.waitForURL(/\/learner-dashboard/, { timeout: 15000 }),
-            page.getByRole('button', { name: 'Sign In', exact: true }).click()
-        ]);
+        await loginAs(page, 'STUDENT');
 
         // --- Verify Link NOT in Header ---
         await expect(page.getByRole('link', { name: 'Instructor Dashboard', exact: true })).not.toBeVisible();

@@ -1,18 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './utils/auth-helpers';
 
 test.describe('Course Sidebar', () => {
     test.beforeEach(async ({ page }) => {
         // Login as seeded student
-        await page.goto('/login');
-        await page.getByLabel('Email').fill('test@example.com');
-        await page.getByLabel('Password').fill('test');
-        await page.getByRole('button', { name: 'Sign In', exact: true }).click();
-
-        // Wait for redirect to dashboard
-        await page.waitForURL('**/learner-dashboard', { timeout: 10000, waitUntil: 'domcontentloaded' });
-
-        // Check for dashboard heading
-        await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 15000 });
+        await loginAs(page, 'STUDENT');
     });
 
     test('Sidebar collapse/expand and navigation', async ({ page }) => {

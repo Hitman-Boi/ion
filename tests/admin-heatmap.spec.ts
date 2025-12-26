@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { loginAs } from "./utils/auth-helpers";
 
 /**
  * Admin Heatmap E2E Tests
@@ -9,11 +10,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Admin Content Health Dashboard", () => {
     test.beforeEach(async ({ page }) => {
         // Login as admin
-        await page.goto("/login");
-        await page.fill('input[name="email"]', "admin@test.com");
-        await page.fill('input[name="password"]', "password123");
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(learner-dashboard|admin)/);
+        await loginAs(page, 'ADMIN');
     });
 
     test("admin dashboard should load successfully", async ({ page }) => {
@@ -50,8 +47,8 @@ test.describe("Skill Matrix Heatmap (Future)", () => {
 
     test.beforeEach(async ({ page }) => {
         await page.goto("/login");
-        await page.fill('input[name="email"]', "admin@test.com");
-        await page.fill('input[name="password"]', "password123");
+        await page.fill('input[name="email"]', "admin@learning-hub.iongroup.com");
+        await page.fill('input[name="password"]', "admin");
         await page.click('button[type="submit"]');
         await page.waitForURL(/\/(learner-dashboard|admin)/);
     });
@@ -91,8 +88,8 @@ test.describe("Skill Matrix Heatmap (Future)", () => {
 test.describe("Coverage Metrics", () => {
     test.beforeEach(async ({ page }) => {
         await page.goto("/login");
-        await page.fill('input[name="email"]', "admin@test.com");
-        await page.fill('input[name="password"]', "password123");
+        await page.fill('input[name="email"]', "admin@learning-hub.iongroup.com");
+        await page.fill('input[name="password"]', "admin");
         await page.click('button[type="submit"]');
         await page.waitForURL(/\/(learner-dashboard|admin)/);
     });

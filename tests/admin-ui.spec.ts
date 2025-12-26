@@ -1,23 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './utils/auth-helpers';
 
 test.describe('Admin UI', () => {
     test.beforeEach(async ({ page }) => {
         // Login flow
-        await page.goto('/login');
-
-        // Ensure we are on the login page
-        await expect(page).toHaveURL(/.*\/login/);
-
-        // Fill credentials
-        await page.getByLabel('Email').fill('admin@example.com');
-        await page.getByLabel('Password').fill('admin');
-
-        // Click strict Sign In button (avoiding Microsoft one)
-        await page.getByRole('button', { name: 'Sign In', exact: true }).click();
-
-        // Wait for redirect to home or dashboard
-        // Wait for a visible element on the dashboard to confirm login
-        await expect(page).toHaveURL(/\/learner-dashboard/, { timeout: 30000 });
+        await loginAs(page, 'ADMIN');
     });
 
     test('Add Admin Sheet should be visible', async ({ page }) => {

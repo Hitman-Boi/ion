@@ -1,55 +1,33 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { TEST_USERS } from '../src/lib/test-users'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  const adminPassword = await bcrypt.hash('admin', 10)
-  const testPassword = await bcrypt.hash('test', 10)
-  const instructorPassword = await bcrypt.hash('instructor', 10)
-
   // --- Users (using upsert for idempotency) ---
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@learning-hub.iongroup.com' },
-    update: {
-      password: adminPassword,
-      role: 'ADMIN',
-    },
-    create: {
-      email: 'admin@learning-hub.iongroup.com',
-      name: 'Admin User',
-      password: adminPassword,
-      role: 'ADMIN',
-    },
-  })
+  const users = [TEST_USERS.ADMIN, TEST_USERS.STUDENT, TEST_USERS.INSTRUCTOR];
 
-  const testUser = await prisma.user.upsert({
-    where: { email: 'test@learning-hub.iongroup.com' },
-    update: {
-      password: testPassword,
-      role: 'STUDENT',
-    },
-    create: {
-      email: 'test@learning-hub.iongroup.com',
-      name: 'Test User',
-      password: testPassword,
-      role: 'STUDENT',
-    },
-  })
+  for (const user of users) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: {
+        password: hashedPassword,
+        role: user.role,
+      },
+      create: {
+        email: user.email,
+        name: user.name,
+        password: hashedPassword,
+        role: user.role,
+      },
+    });
+  }
 
-  const instructor = await prisma.user.upsert({
-    where: { email: 'instructor@learning-hub.iongroup.com' },
-    update: {
-      password: instructorPassword,
-      role: 'INSTRUCTOR',
-    },
-    create: {
-      email: 'instructor@learning-hub.iongroup.com',
-      name: 'Instructor User',
-      password: instructorPassword,
-      role: 'INSTRUCTOR',
-    },
-  })
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: TEST_USERS.ADMIN.email } });
+  const testUser = await prisma.user.findUniqueOrThrow({ where: { email: TEST_USERS.STUDENT.email } });
+  const instructor = await prisma.user.findUniqueOrThrow({ where: { email: TEST_USERS.INSTRUCTOR.email } });
 
   console.log({ admin, testUser, instructor })
 
@@ -106,6 +84,7 @@ async function main() {
                       create: [
                         {
                           type: 'VIDEO',
+                          summary: 'Video from example.com',
                           contentUrl: 'https://example.com/video.mp4',
                           sortOrder: 1
                         }
@@ -119,6 +98,7 @@ async function main() {
                       create: [
                         {
                           type: 'PDF',
+                          summary: 'Reading: guide.pdf',
                           contentUrl: 'https://example.com/guide.pdf',
                           sortOrder: 1
                         }
@@ -169,6 +149,32 @@ async function main() {
       role: 'INSTRUCTOR',
     },
   })
+
+  // 3b. Create "Studio Test Course" for Instructor (for E2E testing)
+  let studioTestCourse = await prisma.course.findFirst({
+    where: { title: 'Studio Test Course' },
+  })
+
+  if (!studioTestCourse) {
+    studioTestCourse = await prisma.course.create({
+      data: {
+        title: 'Studio Test Course',
+        description: 'A blank canvas for testing the Studio UI.',
+        instructorId: instructor.id,
+        skills: {
+          connect: { id: reactSkill.id },
+        },
+      },
+    })
+  } else {
+    // Ensure instructor is set correctly if it already exists
+    await prisma.course.update({
+      where: { id: studioTestCourse.id },
+      data: { instructorId: instructor.id }
+    })
+  }
+
+  console.log({ studioTestCourse })
 
   console.log({ reactSkill, advancedReactCourse })
 

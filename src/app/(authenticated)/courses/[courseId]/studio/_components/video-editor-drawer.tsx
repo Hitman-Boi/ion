@@ -43,8 +43,18 @@ export function VideoEditorDrawer({ courseId, resource, open, onOpenChange, onRe
         if (!resource) return
         setLoading(true)
         try {
+            let summary = 'Video Resource'
+            if (contentUrl) {
+                try {
+                    const url = new URL(contentUrl)
+                    summary = `Video from ${url.hostname}`
+                } catch {
+                    summary = `Video Resource: ${contentUrl}`
+                }
+            }
+
             await updateTopicResource(resource.id, { contentUrl }, courseId)
-            onResourceUpdate({ ...resource, contentUrl })
+            onResourceUpdate({ ...resource, contentUrl, summary })
             toast.success('Video saved')
             onOpenChange(false)
         } catch (e) {

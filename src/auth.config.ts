@@ -41,5 +41,5 @@ export const authConfig = {
     },
   },
   providers: [], // Configured in auth.ts
-  secret: process.env.SESSION_ENCRYPTION_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || process.env.SESSION_ENCRYPTION_SECRET,
 } satisfies NextAuthConfig
