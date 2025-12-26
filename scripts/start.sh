@@ -38,4 +38,16 @@ fi
 echo "Starting application version $APP_VERSION..."
 docker-compose -f docker-compose.production.yml up -d
 
-echo "Application started successfully."
+# Wait for database to be ready
+echo "Waiting for database to be healthy..."
+until docker-compose -f docker-compose.production.yml exec -T db pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-learning_hub}; do
+    echo "Database is not ready yet. Waiting..."
+    sleep 2
+done
+echo "Database is ready."
+
+# Run Prisma migrations
+echo "Running database migrations..."
+docker-compose -f docker-compose.production.yml exec -T app npx prisma migrate deploy
+
+echo "Application started successfully with migrations applied."

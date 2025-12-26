@@ -1,67 +1,76 @@
 stages:
   - build
-  - docker-build
-  - package
+  - deploy
 
 variables:
-  CI_ENV_FILE: ".env"
+  # Deployment path on the runner
+  DEPLOY_PATH: "/home/ec2-user/learning-hub"
 
+# ==============================================================================
+# BUILD STAGE: Generate production release zip using npm build:production
+# ==============================================================================
 build:
   stage: build
-  image: node:20-alpine
+  tags:
+    - cat-dlp-2
   script:
-    # Create .env file
-    - cp .env.example .env
-    # Append GitLab CI variables to .env (assuming they are set in GitLab CI/CD settings)
-    - |
-      if [ -f "$CI_ENV_FILE" ]; then
-        echo "" >> $CI_ENV_FILE
-        env | grep -E "^(DATABASE_URL|SESSION_ENCRYPTION_SECRET|AZURE_AD_CLIENT_ID|AZURE_AD_CLIENT_SECRET|AZURE_AD_TENANT_ID)" >> $CI_ENV_FILE || true
-      fi
+    # Install dependencies
     - npm ci
+    # Generate Prisma client
     - npx prisma generate
-    - npm run build
-    - npm run test
-    - npm run test:e2e
-
-docker-build:
-  stage: docker-build
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  dependencies:
-    - build
-  script:
-    - docker build -t my-app-image:latest .
-    - docker save my-app-image:latest -o my-app-image.tar
+    # Run the production build script (runs tests, builds Docker images, creates zip)
+    - npm run build:production
   artifacts:
     paths:
-      - my-app-image.tar
-    expire_in: 1 hour
-
-package:
-  stage: package
-  image: alpine:latest
-  dependencies:
-    - build
-    - docker-build
-  script:
-    - apk add --no-cache zip sed
-    # Prepare docker-compose.yml for deployment (use image instead of build)
-    - cp docker-compose.yml docker-compose.deploy.yml
-    - sed -i 's|build: .|image: my-app-image:latest|g' docker-compose.deploy.yml
-    # Rename for the zip
-    - mv docker-compose.deploy.yml docker-compose.yml
-    # Zip artifacts
-    - mkdir -p artifacts
-    - cp my-app-image.tar artifacts/
-    - cp docker-compose.yml artifacts/
-    - cp .env artifacts/
-    - cp scripts/start-app.sh artifacts/
-    - chmod +x artifacts/start-app.sh
-    - cd artifacts && zip -r ../deployment-package.zip .
-  artifacts:
-    paths:
-      - deployment-package.zip
+      - learning-hub-release-*.zip
     expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      when: manual
 
+# ==============================================================================
+# DEPLOY STAGE: Deploy to development environment
+# ==============================================================================
+deploy-development:
+  stage: deploy
+  tags:
+    - cat-dlp-2
+  dependencies:
+    - build
+  script:
+    # Stop any existing containers
+    - |
+      if [ -d "$DEPLOY_PATH" ]; then
+        echo "Stopping existing deployment..."
+        cd "$DEPLOY_PATH"
+        docker-compose -f docker-compose.production.yml down || true
+      fi
+    
+    # Clean and prepare deployment directory
+    - rm -rf "$DEPLOY_PATH"
+    - mkdir -p "$DEPLOY_PATH"
+    
+    # Find and unzip the release archive
+    - |
+      RELEASE_ZIP=$(ls -1 learning-hub-release-*.zip | head -n 1)
+      echo "Deploying: $RELEASE_ZIP"
+      unzip -o "$RELEASE_ZIP" -d "$DEPLOY_PATH"
+    
+    # Move contents from release subdirectory to deploy path
+    - mv "$DEPLOY_PATH/release/"* "$DEPLOY_PATH/"
+    - rmdir "$DEPLOY_PATH/release"
+    
+    # Run the start script
+    - cd "$DEPLOY_PATH"
+    - chmod +x start.sh
+    - ./start.sh
+  environment:
+    name: development
+    url: http://localhost:3000
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      when: manual
