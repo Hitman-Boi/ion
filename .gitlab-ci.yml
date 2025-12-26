@@ -14,10 +14,6 @@ build:
   tags:
     - cat-dlp-2
   script:
-    # Install dependencies
-    - npm ci
-    # Generate Prisma client
-    - npx prisma generate
     # Run the production build script (runs tests, builds Docker images, creates zip)
     - npm run build:production
   artifacts:

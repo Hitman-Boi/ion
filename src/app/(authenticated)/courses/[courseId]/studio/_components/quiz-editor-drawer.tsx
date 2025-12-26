@@ -103,8 +103,8 @@ export function QuizEditorDrawer({ courseId, resource, open, onOpenChange, onRes
         setLoading(true)
         try {
             const quizData = { questions }
-            const summary = `Quiz: ${questions.length} Questions`
-            await updateTopicResource(resource.id, { quizData, summary }, courseId)
+            const summary = `Quiz: ${questions.length} Question${questions.length !== 1 ? 's' : ''}`
+            await updateTopicResource(resource.id, { quizData }, courseId)
             onResourceUpdate({ ...resource, quizData, summary })
             toast.success('Quiz saved')
             onOpenChange(false)

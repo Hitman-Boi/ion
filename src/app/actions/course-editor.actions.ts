@@ -51,15 +51,15 @@ async function checkCourseOwnerOrAdmin(courseId: string) {
 
 // Validate Module Access by resolving courseId from DB
 async function checkModuleEditAccess(moduleId: string) {
-    const module = await db.module.findUnique({
+    const courseModule = await db.module.findUnique({
         where: { id: moduleId },
         select: { id: true, courseId: true }
     })
 
-    if (!module) throw new Error("Module not found")
+    if (!courseModule) throw new Error("Module not found")
 
-    await checkCourseOwnerOrAdmin(module.courseId)
-    return module
+    await checkCourseOwnerOrAdmin(courseModule.courseId)
+    return courseModule
 }
 
 // Validate Topic Access by resolving courseId from DB
@@ -181,13 +181,13 @@ export async function reorderModules(courseId: string, updates: { id: string; so
 export async function deleteModule(moduleId: string, courseId: string) {
     // Validate moduleId genuinely belongs to courseId implies checking module access is sufficient
     // checking module access verifies courseId inside it
-    const module = await checkModuleEditAccess(moduleId)
+    const courseModule = await checkModuleEditAccess(moduleId)
 
     // Optional: Double check consistency if correct courseId was passed for revalidating
-    if (module.courseId !== courseId) {
+    if (courseModule.courseId !== courseId) {
         // Just warn or ignore, but we use the found module's course for logic if needed
         // But revalidatePath uses the passed arg. Let's ensure they match to be safe.
-        if (courseId && module.courseId !== courseId) {
+        if (courseId && courseModule.courseId !== courseId) {
             throw new Error("Course ID Mismatch")
         }
     }
@@ -199,9 +199,9 @@ export async function deleteModule(moduleId: string, courseId: string) {
 }
 
 export async function updateModule(moduleId: string, courseId: string, title: string, description?: string) {
-    const module = await checkModuleEditAccess(moduleId)
+    const courseModule = await checkModuleEditAccess(moduleId)
 
-    if (courseId && module.courseId !== courseId) {
+    if (courseId && courseModule.courseId !== courseId) {
         throw new Error("Course ID Mismatch")
     }
 
@@ -230,9 +230,9 @@ export async function updateCourseDetails(courseId: string, data: { title: strin
 
 export async function createTopic(moduleId: string, title: string, courseId: string, description?: string) {
     // Check if user has access to the *module* (which implies access to the course)
-    const module = await checkModuleEditAccess(moduleId)
+    const courseModule = await checkModuleEditAccess(moduleId)
 
-    if (module.courseId !== courseId) {
+    if (courseModule.courseId !== courseId) {
         throw new Error("Module does not belong to the specified course")
     }
 

@@ -27,6 +27,10 @@ REDIS_VERSION=$REDIS_VERSION
 POSTHOG_VERSION=$POSTHOG_VERSION
 EOF
 
+npm ci --ignore-scripts
+npx prisma generate
+npm run build
+
 # Run tests
 echo "Running unit tests..."
 CI=true npm run test

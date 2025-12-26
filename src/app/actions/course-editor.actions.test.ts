@@ -6,8 +6,10 @@ import { auth } from '@/auth';
 vi.mock('@/auth', () => ({ auth: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({
     prisma: {
-        module: { create: vi.fn(), findFirst: vi.fn(), update: vi.fn(), delete: vi.fn() },
+        module: { create: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn(), delete: vi.fn(), count: vi.fn() },
         topic: { create: vi.fn(), findFirst: vi.fn() }, // Partial mock
+        course: { findUnique: vi.fn() },
+        enrollment: { findUnique: vi.fn() },
         $transaction: vi.fn(),
     }
 }));
@@ -23,6 +25,8 @@ describe('course-editor.actions', () => {
     describe('createModule', () => {
         it('creates module with correct order', async () => {
             vi.mocked(auth).mockResolvedValue(mockSession as any);
+            // Mock authorization check
+            vi.mocked(prisma.course.findUnique).mockResolvedValue({ instructorId: 'u1' } as any);
             // Case: No existing modules
             vi.mocked(prisma.module.findFirst).mockResolvedValue(null);
             vi.mocked(prisma.module.create).mockResolvedValue({ id: 'm1', sortOrder: 1 } as any);
@@ -37,6 +41,8 @@ describe('course-editor.actions', () => {
 
         it('increments sort order', async () => {
             vi.mocked(auth).mockResolvedValue(mockSession as any);
+            // Mock authorization check
+            vi.mocked(prisma.course.findUnique).mockResolvedValue({ instructorId: 'u1' } as any);
             vi.mocked(prisma.module.findFirst).mockResolvedValue({ sortOrder: 5 } as any);
 
             await createModule('c1', 'New Module');
@@ -49,6 +55,10 @@ describe('course-editor.actions', () => {
     describe('reorderModules', () => {
         it('updates module orders transactionally', async () => {
             vi.mocked(auth).mockResolvedValue(mockSession as any);
+            // Mock authorization check
+            vi.mocked(prisma.course.findUnique).mockResolvedValue({ instructorId: 'u1' } as any);
+            // Mock module count for verification
+            vi.mocked(prisma.module.count).mockResolvedValue(2);
 
             await reorderModules('c1', [{ id: 'm1', sortOrder: 0 }, { id: 'm2', sortOrder: 1 }]);
 
@@ -61,10 +71,14 @@ describe('course-editor.actions', () => {
     describe('updateModule', () => {
         it('updates module title', async () => {
             vi.mocked(auth).mockResolvedValue(mockSession as any);
+            // Mock authorization checks
+            vi.mocked(prisma.module.findUnique).mockResolvedValue({ id: 'm1', courseId: 'c1' } as any);
+            vi.mocked(prisma.course.findUnique).mockResolvedValue({ instructorId: 'u1' } as any);
+
             await updateModule('m1', 'c1', 'Updated Title');
             expect(prisma.module.update).toHaveBeenCalledWith({
                 where: { id: 'm1' },
-                data: { title: 'Updated Title' }
+                data: { title: 'Updated Title', description: undefined }
             });
         });
     });
@@ -72,6 +86,10 @@ describe('course-editor.actions', () => {
     describe('deleteModule', () => {
         it('deletes module', async () => {
             vi.mocked(auth).mockResolvedValue(mockSession as any);
+            // Mock authorization checks
+            vi.mocked(prisma.module.findUnique).mockResolvedValue({ id: 'm1', courseId: 'c1' } as any);
+            vi.mocked(prisma.course.findUnique).mockResolvedValue({ instructorId: 'u1' } as any);
+
             await deleteModule('m1', 'c1');
             expect(prisma.module.delete).toHaveBeenCalledWith({ where: { id: 'm1' } });
         });

@@ -8,7 +8,7 @@ import { FileText, CheckCircle, ExternalLink } from 'lucide-react'
 import { TopicResource } from '@prisma/client'
 
 interface ResourceRendererProps {
-    resource: TopicResource & { quizData?: { questions: unknown[] } | null }
+    resource: TopicResource
     topicId: string
     isCompleted: boolean
     onComplete: () => void

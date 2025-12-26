@@ -102,24 +102,20 @@ describe('CourseSidebar', () => {
 
         it('renders course title when expanded', () => {
             render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
-            // Sidebar starts collapsed by default, need to expand
-            const toggleButton = screen.getByRole('button');
-            fireEvent.click(toggleButton);
+            // Sidebar starts expanded by default
             expect(screen.getByText('Introduction to TypeScript')).toBeInTheDocument();
         });
 
         it('renders module titles when expanded', () => {
             render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
-            const toggleButton = screen.getByRole('button');
-            fireEvent.click(toggleButton);
+            // Sidebar starts expanded by default
             expect(screen.getByText('Getting Started')).toBeInTheDocument();
             expect(screen.getByText('Advanced Topics')).toBeInTheDocument();
         });
 
         it('renders topic links when expanded', () => {
             render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
-            const toggleButton = screen.getByRole('button');
-            fireEvent.click(toggleButton);
+            // Sidebar starts expanded by default
             expect(screen.getByText('Introduction')).toBeInTheDocument();
             expect(screen.getByText('Setup Environment')).toBeInTheDocument();
             expect(screen.getByText('Type Guards')).toBeInTheDocument();
@@ -129,53 +125,50 @@ describe('CourseSidebar', () => {
     describe('Progress Display', () => {
         it('displays progress percentage when expanded', () => {
             render(<CourseSidebar course={mockCourse as any} progressCount={75} />);
-            const toggleButton = screen.getByRole('button');
-            fireEvent.click(toggleButton);
+            // Sidebar starts expanded by default
             expect(screen.getByText('75%')).toBeInTheDocument();
         });
 
         it('shows Course Progress label when expanded', () => {
             render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
-            const toggleButton = screen.getByRole('button');
-            fireEvent.click(toggleButton);
+            // Sidebar starts expanded by default
             expect(screen.getByText('Course Progress')).toBeInTheDocument();
         });
     });
 
     describe('Toggle Behavior', () => {
-        it('starts in collapsed state', () => {
+        it('starts in expanded state', () => {
             render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
-            // When collapsed, course title should not be visible
-            expect(screen.queryByText('Introduction to TypeScript')).not.toBeInTheDocument();
-        });
-
-        it('expands when toggle button is clicked', () => {
-            render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
-            const toggleButton = screen.getByRole('button');
-            fireEvent.click(toggleButton);
+            // When expanded, course title should be visible
             expect(screen.getByText('Introduction to TypeScript')).toBeInTheDocument();
         });
 
-        it('collapses when toggle button is clicked again', () => {
+        it('collapses when toggle button is clicked', () => {
             render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
             const toggleButton = screen.getByRole('button');
+            fireEvent.click(toggleButton);
+            // Course title should not be visible when collapsed
+            expect(screen.queryByText('Introduction to TypeScript')).not.toBeInTheDocument();
+        });
+
+        it('expands when toggle button is clicked while collapsed', () => {
+            render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
+            const toggleButton = screen.getByRole('button');
+
+            // Collapse first
+            fireEvent.click(toggleButton);
+            expect(screen.queryByText('Introduction to TypeScript')).not.toBeInTheDocument();
 
             // Expand
             fireEvent.click(toggleButton);
             expect(screen.getByText('Introduction to TypeScript')).toBeInTheDocument();
-
-            // Collapse
-            fireEvent.click(toggleButton);
-            expect(screen.queryByText('Introduction to TypeScript')).not.toBeInTheDocument();
         });
     });
 
     describe('Topic Links', () => {
         it('generates correct links for topics', () => {
             render(<CourseSidebar course={mockCourse as any} progressCount={50} />);
-            const toggleButton = screen.getByRole('button');
-            fireEvent.click(toggleButton);
-
+            // Sidebar starts expanded by default
             const links = screen.getAllByRole('link');
             expect(links[0]).toHaveAttribute('href', '/courses/course-1/topic/topic-1');
         });

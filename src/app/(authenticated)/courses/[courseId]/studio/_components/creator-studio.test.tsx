@@ -35,9 +35,10 @@ vi.mock('@dnd-kit/sortable', () => ({
 
 // Mock child components
 vi.mock('./sortable-module', () => ({
-    SortableModule: ({ children, id, onToggle }: any) => (
+    SortableModule: ({ children, id, onToggle, actions }: any) => (
         <div data-testid={`module-${id}`}>
             <button onClick={onToggle}>Toggle {id}</button>
+            {actions}
             {children}
         </div>
     )
@@ -113,7 +114,7 @@ describe('CreatorStudio', () => {
 
         render(<CreatorStudio course={mockCourse} allSkills={[]} />);
 
-        fireEvent.click(screen.getByText('New Module'));
+        fireEvent.click(screen.getByText('Add Module'));
 
         expect(screen.getByTestId('sheet')).toBeInTheDocument();
         expect(screen.getByText('Add New Module')).toBeInTheDocument();
@@ -124,7 +125,7 @@ describe('CreatorStudio', () => {
         fireEvent.click(screen.getByText('Create'));
 
         await waitFor(() => {
-            expect(actions.createModule).toHaveBeenCalledWith('c1', 'New Module');
+            expect(actions.createModule).toHaveBeenCalledWith('c1', 'New Module', '');
         });
 
         // Optimistic update or state update check
@@ -153,7 +154,7 @@ describe('CreatorStudio', () => {
         fireEvent.click(screen.getByText('Create'));
 
         await waitFor(() => {
-            expect(actions.createTopic).toHaveBeenCalledWith('m1', 'New Topic', 'c1');
+            expect(actions.createTopic).toHaveBeenCalledWith('m1', 'New Topic', 'c1', '');
         });
 
         // Check for new topic

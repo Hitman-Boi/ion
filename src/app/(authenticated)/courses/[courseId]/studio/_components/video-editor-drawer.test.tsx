@@ -84,7 +84,7 @@ describe('VideoEditorDrawer', () => {
 
         await waitFor(() => {
             expect(updateTopicResource).toHaveBeenCalledWith('r1', { contentUrl: 'http://new.com' }, 'c1');
-            expect(onUpdate).toHaveBeenCalledWith({ ...mockResource, contentUrl: 'http://new.com' });
+            expect(onUpdate).toHaveBeenCalledWith({ ...mockResource, contentUrl: 'http://new.com', summary: 'Video from new.com' });
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
     });
