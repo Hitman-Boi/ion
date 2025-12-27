@@ -154,20 +154,7 @@ model Submission {
   @@map("submissions")
 }
 
-// LTI Integration
-model LtiInstallation {
-  id           String @id @default(uuid())
-  clientId     String @map("client_id")
-  issuer       String
-  deploymentId String @map("deployment_id")
-  jwksUrl      String @map("jwks_url")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@unique([clientId, issuer])
-  @@map("lti_installations")
-}
 
 enum Role {
   STUDENT
