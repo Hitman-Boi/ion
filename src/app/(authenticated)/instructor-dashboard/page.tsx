@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { CreateCourseButton } from "@/components/create-course-button";
+import { CreateCourseButton } from "@/components/course/create-course-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getInstructorDashboardData } from "@/app/actions/dashboard.actions";

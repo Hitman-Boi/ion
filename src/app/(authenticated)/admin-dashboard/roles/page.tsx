@@ -14,10 +14,10 @@ export default async function AdminRolesPage() {
 
 
     return (
-        <div className="w-full h-full bg-background">
+        <div className="flex flex-col h-full w-full bg-background overflow-hidden">
             {/* Header is handled by layout, but we need title maybe? */}
-            <div className="border-b bg-card p-3 md:p-4">
-                <h1 className="text-xl md:text-2xl font-bold tracking-tight">Roles &amp; Curriculums</h1>
+            <div className="border-b bg-card p-3 md:p-4 flex-none">
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight">Roles & Curriculums</h1>
                 <p className="text-xs md:text-sm text-muted-foreground">Manage job roles and design their learning paths.</p>
             </div>
 

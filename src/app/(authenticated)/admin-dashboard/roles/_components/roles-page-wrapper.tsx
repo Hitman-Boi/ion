@@ -55,9 +55,9 @@ export default function RolesPageWrapper({
     return (
         <>
             {/* Mobile View: Tabs */}
-            <div className="md:hidden h-[calc(100vh-65px)]">
+            <div className="md:hidden h-full flex flex-col min-h-0">
                 <Tabs defaultValue="roles" className="h-full flex flex-col">
-                    <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
+                    <TabsList className="w-full grid grid-cols-2 rounded-none border-b shrink-0">
                         <TabsTrigger value="roles">Job Roles</TabsTrigger>
                         <TabsTrigger value="paths">Learning Paths</TabsTrigger>
                     </TabsList>
@@ -80,9 +80,9 @@ export default function RolesPageWrapper({
             </div>
 
             {/* Desktop View: Side by Side */}
-            <div className="hidden md:flex h-[calc(100vh-65px)] overflow-hidden">
+            <div className="hidden md:flex flex-1 min-h-0 overflow-hidden">
                 {/* Left Pane: Roles */}
-                <div className="w-1/3 min-w-[300px] border-r">
+                <div className="w-1/3 min-w-[300px] border-r h-full">
                     <RolesList
                         roles={roles}
                         selectedRole={selectedRole}
@@ -92,7 +92,7 @@ export default function RolesPageWrapper({
                 </div>
 
                 {/* Right Pane: Learning Paths */}
-                <div className="flex-1 min-w-[400px]">
+                <div className="flex-1 min-w-[400px] h-full">
                     <LearningPathsList
                         paths={learningPaths}
                         onSelectPath={handleEditPath}

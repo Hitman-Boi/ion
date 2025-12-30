@@ -1,44 +1,46 @@
 import { auth } from '@/auth'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { LoginForm } from '@/components/auth/login-form'
 
-export default async function Home() {
+export default async function Home({
+    searchParams,
+}: {
+    searchParams: Promise<{ error?: string }>
+}) {
     const session = await auth()
 
     if (session) {
         redirect('/learner-dashboard')
     }
 
+    const { error } = await searchParams
+
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center overflow-hidden relative">
+        <div className="min-h-screen grid lg:grid-cols-2 overflow-hidden relative">
             {/* Abstract Background Shapes - Removed for subtle theme */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-                {/* Subtle grid or pattern could go here if needed, but keeping it clean for now */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none lg:hidden">
+                {/* Mobile background only if needed */}
             </div>
 
-            <div className="z-10 text-center px-4 max-w-4xl mx-auto">
-                <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 drop-shadow-lg">
-                    Start learning with <br /> Learning Hub
-                </h1>
+            {/* Left Content */}
+            <div className="flex flex-col items-center justify-center relative p-8 lg:p-20 z-10">
+                <div className="text-center lg:text-left max-w-2xl">
+                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 drop-shadow-lg">
+                        Start learning with <br /> Learning Hub
+                    </h1>
+                </div>
 
-
-
-                <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                    <Link
-                        href="/login"
-                        className="group relative px-8 py-4 bg-white text-purple-900 font-bold text-xl rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-                    >
-                        <span className="relative z-10">Get Started Now</span>
-                        <div className="absolute inset-0 h-full w-full scale-0 rounded-full transition-all duration-300 group-hover:scale-100 group-hover:bg-purple-100/30"></div>
-                    </Link>
-
-
+                <div className="absolute bottom-8 text-black/40 dark:text-white/40 text-sm">
+                    © 2025 Learning Hub. All rights reserved.
                 </div>
             </div>
 
-            {/* Footer-like element */}
-            <div className="absolute bottom-8 text-white/40 text-sm">
-                © 2025 Learning Hub. All rights reserved.
+            {/* Right Content - Login Form */}
+            <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 p-8 lg:p-20 z-10 shadow-inner">
+                <LoginForm
+                    errorId={error}
+                    errorRedirectPath="/"
+                />
             </div>
         </div>
     )

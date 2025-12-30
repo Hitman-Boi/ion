@@ -2,7 +2,7 @@ import { auth } from "@/auth"
 import { Waypoints } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { CreateCourseButton } from "@/components/create-course-button"
+import { CreateCourseButton } from "@/components/course/create-course-button"
 import { getAdminDashboardData } from "@/app/actions/dashboard.actions"
 import { redirect } from "next/navigation"
 import { ManageAdminsSheet } from "./manage-admins-sheet"
@@ -27,7 +27,7 @@ export default async function AdminPage() {
     ])
 
     return (
-        <div className="h-screen w-full bg-background flex flex-col p-6">
+        <div className="h-full w-full bg-background flex flex-col p-6 overflow-hidden">
             <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
             <div className="flex-1 flex flex-col md:grid md:grid-cols-[1fr_300px] gap-6 min-h-0">

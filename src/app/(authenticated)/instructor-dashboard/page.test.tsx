@@ -21,7 +21,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Mock child components
-vi.mock('@/components/create-course-button', () => ({
+vi.mock('@/components/course/create-course-button', () => ({
     CreateCourseButton: () => <div data-testid="create-course-button">Create Course Button</div>,
 }));
 

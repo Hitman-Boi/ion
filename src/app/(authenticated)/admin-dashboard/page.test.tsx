@@ -38,7 +38,7 @@ vi.mock('./courses-list', () => ({
     CoursesList: ({ courses }: any) => <div data-testid="courses-list">{courses.length} courses</div>,
 }));
 
-vi.mock('@/components/create-course-button', () => ({
+vi.mock('@/components/course/create-course-button', () => ({
     CreateCourseButton: () => <div data-testid="create-course-button">Create Course</div>,
 }));
 
