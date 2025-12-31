@@ -28,14 +28,17 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   webServer: {
     // Use standalone output for E2E tests (required since next.config.js uses output: 'standalone')
-    command: 'node .next/standalone/server.js',
+    // Note: standalone mode requires static files and public folder to be copied
+    command: 'cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/ && node .next/standalone/server.js',
     url: 'http://localhost:3002',
     reuseExistingServer: !process.env.CI,
-    timeout: 60000, // 1 minute to allow for server to start
+    timeout: 120000, // 2 minutes for CI environments
     env: {
       PORT: '3002',
+      HOSTNAME: '0.0.0.0',
       AUTH_SECRET: process.env.AUTH_SECRET || 'e2e-test-secret-do-not-use-in-production',
       AUTH_TRUST_HOST: 'true',
+      DATABASE_URL: process.env.DATABASE_URL || '',
     },
   },
 });
