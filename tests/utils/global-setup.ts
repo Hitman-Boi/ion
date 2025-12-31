@@ -3,8 +3,8 @@ import { FullConfig } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Local database URL (when using Docker)
-const LOCAL_DATABASE_URL = "postgresql://learninghub:learninghub@localhost:5432/learning_hub";
+// Local database URL (when using Docker) - must match docker-compose.localdev.yml
+const LOCAL_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/learning_hub";
 
 // Common Docker paths on macOS and Linux
 const DOCKER_PATHS = [
@@ -69,7 +69,7 @@ async function globalSetup(config: FullConfig) {
 
             try {
                 console.log('🐳 Starting PostgreSQL container...');
-                execSync(`${dockerPath} compose up -d db`, {
+                execSync(`${dockerPath} compose -f docker-compose.localdev.yml up -d db`, {
                     stdio: 'inherit',
                     cwd: process.cwd(),
                 });
@@ -79,7 +79,7 @@ async function globalSetup(config: FullConfig) {
                 let retries = 30;
                 while (retries > 0) {
                     try {
-                        const containerResult = spawnSync(dockerPath, ['ps', '-qf', 'name=db'], {
+                        const containerResult = spawnSync(dockerPath, ['ps', '-qf', 'name=learning-hub-localdev-db'], {
                             encoding: 'utf-8',
                         });
                         const containerId = containerResult.stdout.trim().split('\n')[0];
@@ -87,7 +87,7 @@ async function globalSetup(config: FullConfig) {
                         if (containerId) {
                             const readyResult = spawnSync(dockerPath, [
                                 'exec', containerId,
-                                'pg_isready', '-U', 'learninghub', '-d', 'learning_hub'
+                                'pg_isready', '-U', 'postgres', '-d', 'learning_hub'
                             ], { encoding: 'utf-8' });
 
                             if (readyResult.status === 0) {
