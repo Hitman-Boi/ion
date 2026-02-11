@@ -22,16 +22,16 @@ model User {
   submissions Submission[]
   progress    UserProgress[]
   skills      UserSkill[]
-  
+
   // targetRoleId String?  @map("target_role_id") // Deprecated
-  targetRoles  JobRole[] // Many-to-Many implicit relation
+  targetRoles JobRole[] // Many-to-Many implicit relation
 
   // Instructor relations
   authoredCourses Course[] @relation("InstructorCourses")
 
   // Content Quality relations
-  courseReviews CourseReview[]
-  contentFlags  ContentFlag[]
+  courseReviews   CourseReview[]
+  contentFlags    ContentFlag[]
   subscribedPaths UserLearningPath[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -83,6 +83,13 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+enum Visibility {
+  DRAFT // Only creator sees it
+  PUBLISHED // Public to all authenticated users  
+  HIDDEN // Instructors/Admins only
+  ROLE_ONLY // Specific roles only
+}
+
 model Course {
   id            String    @id @default(uuid())
   title         String
@@ -92,17 +99,20 @@ model Course {
   gradingPolicy Json?     @map("grading_policy") // { "cutoffs": ..., "weights": ... }
   deletedAt     DateTime? @map("deleted_at")
 
+  visibility     Visibility @default(DRAFT) @map("visibility")
+  allowedRoleIds String[]   @default([]) @map("allowed_role_ids") // For ROLE_ONLY
+
   // Content Quality Metrics (Updated via Triggers/Cron)
-  averageRating   Float    @default(0.0) @map("average_rating")
-  reviewCount     Int      @default(0) @map("review_count")
-  completionRate  Float    @default(0.0) @map("completion_rate")
-  enrollmentCount Int      @default(0) @map("enrollment_count")
+  averageRating   Float @default(0.0) @map("average_rating")
+  reviewCount     Int   @default(0) @map("review_count")
+  completionRate  Float @default(0.0) @map("completion_rate")
+  enrollmentCount Int   @default(0) @map("enrollment_count")
 
   // Governance & Quality
-  healthScore     Int      @default(100) @map("health_score")
-  bugReportCount  Int      @default(0) @map("bug_report_count")
+  healthScore     Int          @default(100) @map("health_score")
+  bugReportCount  Int          @default(0) @map("bug_report_count")
   contentVelocity VelocityType @default(NORMAL) @map("content_velocity")
-  lastReviewedAt  DateTime @default(now()) @map("last_reviewed_at")
+  lastReviewedAt  DateTime     @default(now()) @map("last_reviewed_at")
 
   instructor User @relation("InstructorCourses", fields: [instructorId], references: [id])
 
@@ -154,8 +164,6 @@ model Submission {
   @@map("submissions")
 }
 
-
-
 enum Role {
   STUDENT
   INSTRUCTOR
@@ -204,7 +212,7 @@ model LearningPath {
 
   roles JobRole[]
 
-  items LearningPathItem[]
+  items       LearningPathItem[]
   subscribers UserLearningPath[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -216,15 +224,15 @@ model LearningPath {
 }
 
 model UserLearningPath {
-  id             String       @id @default(uuid())
-  userId         String       @map("user_id")
-  learningPathId String       @map("learning_path_id")
-  
+  id             String @id @default(uuid())
+  userId         String @map("user_id")
+  learningPathId String @map("learning_path_id")
+
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   learningPath LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now()) @map("created_at")
-  
+
   @@unique([userId, learningPathId])
   @@map("user_learning_paths")
 }
@@ -236,9 +244,9 @@ enum PathLevel {
 }
 
 enum VelocityType {
-  HIGH   // 180 days TTL (AI, React, etc.)
+  HIGH // 180 days TTL (AI, React, etc.)
   NORMAL // 365 days TTL
-  LOW    // 730 days TTL (Soft Skills)
+  LOW // 730 days TTL (Soft Skills)
 }
 
 model LearningPathItem {
@@ -250,7 +258,7 @@ model LearningPathItem {
   courseId String? @map("course_id")
   course   Course? @relation(fields: [courseId], references: [id])
 
-  moduleId String?  @map("module_id")
+  moduleId String? @map("module_id")
   module   Module? @relation(fields: [moduleId], references: [id])
 
   orderIndex Int @map("order_index")
@@ -376,16 +384,16 @@ model UserProgress {
 // Content Quality Models
 
 model CourseReview {
-  id        String   @id @default(uuid())
-  courseId  String   @map("course_id")
-  userId    String   @map("user_id")
-  rating    Int      // 1-5 Stars
-  comment   String?
-  isPublic  Boolean  @default(false) @map("is_public")
-  
+  id       String  @id @default(uuid())
+  courseId String  @map("course_id")
+  userId   String  @map("user_id")
+  rating   Int // 1-5 Stars
+  comment  String?
+  isPublic Boolean @default(false) @map("is_public")
+
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -394,16 +402,16 @@ model CourseReview {
 }
 
 model ContentFlag {
-  id        String   @id @default(uuid())
-  courseId  String   @map("course_id")
-  userId    String   @map("user_id")
-  reason    String   // "Video Broken", "Audio Bad", "Content Outdated"
-  status    String   @default("OPEN") // "OPEN", "RESOLVED", "DISMISSED"
-  details   String?
-  
+  id       String  @id @default(uuid())
+  courseId String  @map("course_id")
+  userId   String  @map("user_id")
+  reason   String // "Video Broken", "Audio Bad", "Content Outdated"
+  status   String  @default("OPEN") // "OPEN", "RESOLVED", "DISMISSED"
+  details  String?
+
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   createdAt  DateTime  @default(now()) @map("created_at")
   resolvedAt DateTime? @map("resolved_at")
 
