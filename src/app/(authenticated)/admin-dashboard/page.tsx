@@ -1,10 +1,8 @@
-import { auth } from "@/auth"
 import { Waypoints } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CreateCourseButton } from "@/components/course/create-course-button"
 import { getAdminDashboardData } from "@/app/actions/dashboard.actions"
-import { redirect } from "next/navigation"
 import { ManageAdminsSheet } from "./manage-admins-sheet"
 import { CoursesList } from "./courses-list"
 import { getRoles } from "@/app/actions/roles.actions"
@@ -13,11 +11,7 @@ import { getSkillGapData, getSkills } from "@/app/actions/skills.actions"
 import { ManageSkillsSheet } from "./manage-skills-sheet"
 
 export default async function AdminPage() {
-    const session = await auth()
-    // @ts-ignore
-    if (session?.user?.role !== "ADMIN") {
-        redirect("/learner-dashboard")
-    }
+    // Skip auth check - directly show admin dashboard
 
     const [{ adminUsers, courses }, roles, skillGapData, allSkills] = await Promise.all([
         getAdminDashboardData(),

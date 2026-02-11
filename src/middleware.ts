@@ -1,9 +1,10 @@
-import NextAuth from "next-auth"
-import { authConfig } from "./auth.config"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-const { auth } = NextAuth(authConfig)
-
-export default auth
+// Skip all auth checks - allow all requests through
+export default function middleware(request: NextRequest) {
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],

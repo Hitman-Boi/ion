@@ -1,14 +1,10 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function createRole(data: { title: string; description?: string; skillIds?: string[] }) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     const role = await prisma.jobRole.create({
         data: {
@@ -25,10 +21,7 @@ export async function createRole(data: { title: string; description?: string; sk
 }
 
 export async function updateRole(id: string, data: { title: string; description?: string; skillIds?: string[] }) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     const role = await prisma.jobRole.update({
         where: { id },
@@ -46,10 +39,7 @@ export async function updateRole(id: string, data: { title: string; description?
 }
 
 export async function deleteRole(id: string) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     await prisma.jobRole.delete({
         where: { id },
@@ -59,10 +49,7 @@ export async function deleteRole(id: string) {
 }
 
 export async function updateRoleLinkPath(roleId: string, level: string, pathId: string) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     // 1. Find the role and its current paths
     const role = await prisma.jobRole.findUnique({

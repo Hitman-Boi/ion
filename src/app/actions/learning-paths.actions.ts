@@ -1,14 +1,10 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function createLearningPath(data: { title: string; description?: string; roleIds?: string[]; level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" }) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     const path = await prisma.learningPath.create({
         data: {
@@ -26,10 +22,7 @@ export async function createLearningPath(data: { title: string; description?: st
 }
 
 export async function updateLearningPath(id: string, data: { title: string; description?: string; level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" }) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     const path = await prisma.learningPath.update({
         where: { id },
@@ -45,10 +38,7 @@ export async function updateLearningPath(id: string, data: { title: string; desc
 }
 
 export async function addLearningPathItem(pathId: string, data: { courseId?: string; moduleId?: string }) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     // Get current items count to set orderIndex
     const count = await prisma.learningPathItem.count({
@@ -69,10 +59,7 @@ export async function addLearningPathItem(pathId: string, data: { courseId?: str
 }
 
 export async function updateLearningPathOrder(pathId: string, items: { id: string; orderIndex: number }[]) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     await prisma.$transaction(
         items.map((item) =>
@@ -87,10 +74,7 @@ export async function updateLearningPathOrder(pathId: string, items: { id: strin
 }
 
 export async function deleteLearningPathItem(id: string) {
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     await prisma.learningPathItem.delete({
         where: { id }
@@ -100,11 +84,7 @@ export async function deleteLearningPathItem(id: string) {
 }
 
 export async function getLearningPaths() {
-    // Check auth if needed, but usually fine for viewing if public? Admin only for now.
-    const session = await auth();
-    if (!session || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     return await prisma.learningPath.findMany({
         include: {
@@ -121,10 +101,7 @@ export async function getLearningPaths() {
 }
 
 export async function getPublicLearningPaths(searchParams?: { term?: string }) {
-    const session = await auth();
-    if (!session?.user) {
-        throw new Error("Unauthorized");
-    }
+    // Skip auth check
 
     const where: any = {};
 

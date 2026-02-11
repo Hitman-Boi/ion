@@ -1,7 +1,14 @@
 import { auth } from "@/auth"
 import { Header } from "./_components/header"
-import { redirect } from "next/navigation"
 import { isUserInstructor } from "@/app/actions/instructor.actions"
+
+// Mock admin user for development - skips login
+const MOCK_ADMIN_USER = {
+    id: "mock-admin-user",
+    name: "Admin User",
+    email: "admin@ionlearninghub.com",
+    role: "ADMIN",
+}
 
 export default async function AuthenticatedLayout({
     children,
@@ -10,15 +17,14 @@ export default async function AuthenticatedLayout({
 }) {
     const session = await auth()
 
-    if (!session?.user) {
-        redirect("/login")
-    }
-
-    const isInstructor = await isUserInstructor(session.user.id!)
+    // Use real session if available, otherwise fall back to mock admin user
+    const user = session?.user ?? MOCK_ADMIN_USER
+    const userId = user.id ?? MOCK_ADMIN_USER.id
+    const isInstructor = session?.user ? await isUserInstructor(userId) : true
 
     return (
         <div className="h-screen bg-background flex flex-col overflow-hidden">
-            <Header user={session.user} isInstructor={isInstructor} />
+            <Header user={{ ...user, role: (user as any).role ?? "ADMIN" } as any} isInstructor={isInstructor} />
             <div className="flex-1 min-h-0 flex flex-col overflow-y-auto bg-[#0f1115]">
                 {children}
             </div>

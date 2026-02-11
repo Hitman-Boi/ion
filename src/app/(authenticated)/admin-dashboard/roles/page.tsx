@@ -1,14 +1,9 @@
-import { auth } from "@/auth"
 import { getAdminRolesPageData } from "@/app/actions/dashboard.actions"
-import { redirect } from "next/navigation"
 import RolesPageWrapper from "./_components/roles-page-wrapper"
 
 // This is the Server Component
 export default async function AdminRolesPage() {
-    const session = await auth()
-    if (session?.user?.role !== "ADMIN") {
-        redirect("/learner-dashboard")
-    }
+    // Skip auth check - directly show admin roles page
 
     const { roles, learningPaths, allCourses } = await getAdminRolesPageData()
 

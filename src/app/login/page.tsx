@@ -1,15 +1,6 @@
-import { LoginForm } from "@/components/auth/login-form"
+import { redirect } from 'next/navigation'
 
-export default async function LoginPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ error?: string }>
-}) {
-    const { error } = await searchParams
-
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
-            <LoginForm errorId={error} errorRedirectPath="/login" />
-        </div>
-    )
+export default async function LoginPage() {
+    // Skip login - redirect directly to admin dashboard
+    redirect('/admin-dashboard')
 }
